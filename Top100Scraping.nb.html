@@ -1755,145 +1755,143 @@ display: none;
 <p>// we installed selenium // we used free ports</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5saWJyYXJ5KG5ldHN0YXQpXG5saWJyYXJ5KFJTZWxlbml1bSlcbmxpYnJhcnkod2RtYW4pXG5saWJyYXJ5KFJTZWxlbml1bSlcbmxpYnJhcnkocnZlc3QpXG5cbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5saWJyYXJ5KHJ2ZXN0KVxuXG5zZXR3ZCgnQzovVXNlcnMvYWxla3AvT25lRHJpdmUgLSBJbGxpbm9pcyBJbnN0aXR1dGUgb2YgVGVjaG5vbG9neS81dGggWWVhci9TMjQvQ1NQIDU3MS9Qcm9qZWN0L0Jhc2ViYWxsLVdBUi1pbi1SJylcblxuYGBgIn0= -->
 <pre class="r"><code>
-library(netstat)
-library(RSelenium)
-library(wdman)
-library(RSelenium)
 library(rvest)
+
+setwd(&#39;C:/Users/alekp/OneDrive - Illinois Institute of Technology/5th Year/S24/CSP 571/Project/Baseball-WAR-in-R&#39;)
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5zZWxlbml1bSgpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5sb2FkX3BhZ2UgPC0gZnVuY3Rpb24oeWVhciwgb25QYWdlT25lKSB7XG4gIFxuICBiYXNlIDwtICdodHRwczovL3d3dy5lc3BuLmNvbS9tbGIvcGxheWVycmF0aW5ncy9fL3llYXIvJ1xuICB1cmwgPC0gaWYgKG9uUGFnZU9uZSkgcGFzdGUoYmFzZSwgeWVhciwgc2VwID0gJycpIGVsc2UgcGFzdGUoYmFzZSwgeWVhciwgJy9wYWdlLzInLCBzZXAgPSAnJylcbiAgXG4gIGNvbm5lY3RlZCA8LSBGQUxTRVxuICBwYWdlIDwtIE5VTExcbiAgXG4gIHdoaWxlKCFjb25uZWN0ZWQpIHtcbiAgICByZXN1bHQgPC0gdHJ5Q2F0Y2goe1xuICAgICAgY29uIDwtIHVybCh1cmwsICdyYicpXG4gICAgICBwYWdlIDwtIHJlYWRfaHRtbChjb24pXG4gICAgICBjbG9zZShjb24pXG4gICAgICBjb25uZWN0ZWQgPC0gVFJVRVxuICAgIH0sIGVycm9yID0gZnVuY3Rpb24oZSkge1xuICAgICAgY2F0KCdcXG4nLCB5ZWFyLCBvblBhZ2VPbmUsICdcXG5cXG4nKVxuICAgIH0pXG4gIH1cbiAgXG4gIHJldHVybihwYWdlKVxuICBcbn1cblxuYGBgIn0= -->
 <pre class="r"><code>
-selenium()</code></pre>
+load_page &lt;- function(year, onPageOne) {
+  
+  base &lt;- &#39;https://www.espn.com/mlb/playerratings/_/year/&#39;
+  url &lt;- if (onPageOne) paste(base, year, sep = &#39;&#39;) else paste(base, year, &#39;/page/2&#39;, sep = &#39;&#39;)
+  
+  connected &lt;- FALSE
+  page &lt;- NULL
+  
+  while(!connected) {
+    result &lt;- tryCatch({
+      con &lt;- url(url, &#39;rb&#39;)
+      page &lt;- read_html(con)
+      close(con)
+      connected &lt;- TRUE
+    }, error = function(e) {
+      cat(&#39;\n&#39;, year, onPageOne, &#39;\n\n&#39;)
+    })
+  }
+  
+  return(page)
+  
+}
+</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2hlY2tpbmcgU2VsZW5pdW0gU2VydmVyIHZlcnNpb25zOlxuQkVHSU46IFBSRURPV05MT0FEXG5CRUdJTjogRE9XTkxPQURcbkJFR0lOOiBQT1NURE9XTkxPQURcbmNoZWNraW5nIGNocm9tZWRyaXZlciB2ZXJzaW9uczpcbkJFR0lOOiBQUkVET1dOTE9BRFxuQkVHSU46IERPV05MT0FEXG5CRUdJTjogUE9TVERPV05MT0FEXG5jaGVja2luZyBnZWNrb2RyaXZlciB2ZXJzaW9uczpcbkJFR0lOOiBQUkVET1dOTE9BRFxuQkVHSU46IERPV05MT0FEXG5CRUdJTjogUE9TVERPV05MT0FEXG5jaGVja2luZyBwaGFudG9tanMgdmVyc2lvbnM6XG5CRUdJTjogUFJFRE9XTkxPQURcbkJFR0lOOiBET1dOTE9BRFxuQkVHSU46IFBPU1RET1dOTE9BRFxuIn0= -->
-<pre><code>checking Selenium Server versions:
-BEGIN: PREDOWNLOAD
-BEGIN: DOWNLOAD
-BEGIN: POSTDOWNLOAD
-checking chromedriver versions:
-BEGIN: PREDOWNLOAD
-BEGIN: DOWNLOAD
-BEGIN: POSTDOWNLOAD
-checking geckodriver versions:
-BEGIN: PREDOWNLOAD
-BEGIN: DOWNLOAD
-BEGIN: POSTDOWNLOAD
-checking phantomjs versions:
-BEGIN: PREDOWNLOAD
-BEGIN: DOWNLOAD
-BEGIN: POSTDOWNLOAD</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiJHByb2Nlc3NcblBST0NFU1MgJ2ZpbGU0ODU0NDA2NTM3ODcuYmF0JywgcnVubmluZywgcGlkIDI1NTY4LlxuXG4kb3V0cHV0XG5mdW5jdGlvbiAodGltZW91dCA9IDBMKSBcbntcbiAgICBpbmZ1bl9yZWFkKHNlbGVuaXVtZHJ2LCBsb2csIFwic3Rkb3V0XCIsIHRpbWVvdXQgPSB0aW1lb3V0LCBcbiAgICAgICAgb3V0ZmlsZSA9IHBmaWxlW1tcIm91dFwiXV0sIGVycmZpbGUgPSBwZmlsZVtbXCJlcnJcIl1dKVxufVxuPGJ5dGVjb2RlOiAweDAwMDAwMjg3NWVhZGYxYjA+XG48ZW52aXJvbm1lbnQ6IDB4MDAwMDAyODc1ZWFkYjllMD5cblxuJGVycm9yXG5mdW5jdGlvbiAodGltZW91dCA9IDBMKSBcbntcbiAgICBpbmZ1bl9yZWFkKHNlbGVuaXVtZHJ2LCBsb2csIFwic3RkZXJyXCIsIHRpbWVvdXQgPSB0aW1lb3V0LCBcbiAgICAgICAgb3V0ZmlsZSA9IHBmaWxlW1tcIm91dFwiXV0sIGVycmZpbGUgPSBwZmlsZVtbXCJlcnJcIl1dKVxufVxuPGJ5dGVjb2RlOiAweDAwMDAwMjg3NWVhZGViNTg+XG48ZW52aXJvbm1lbnQ6IDB4MDAwMDAyODc1ZWFkYjllMD5cblxuJHN0b3BcbmZ1bmN0aW9uICgpIFxue1xuICAgIGtpbGxfcHJvY2VzcyhzZWxlbml1bWRydilcbn1cbjxieXRlY29kZTogMHgwMDAwMDI4NzVlYWRlNTcwPlxuPGVudmlyb25tZW50OiAweDAwMDAwMjg3NWVhZGI5ZTA+XG5cbiRsb2dcbmZ1bmN0aW9uICgpIFxue1xuICAgIGluZnVuX3JlYWQoc2VsZW5pdW1kcnYsIGxvZywgb3V0ZmlsZSA9IHBmaWxlW1tcIm91dFwiXV0sIGVycmZpbGUgPSBwZmlsZVtbXCJlcnJcIl1dKVxuICAgIGFzLmxpc3QobG9nKVxufVxuPGJ5dGVjb2RlOiAweDAwMDAwMjg3NWVhZGUzYjA+XG48ZW52aXJvbm1lbnQ6IDB4MDAwMDAyODc1ZWFkYjllMD5cbiJ9 -->
-<pre><code>$process
-PROCESS &#39;file485440653787.bat&#39;, running, pid 25568.
-
-$output
-function (timeout = 0L) 
-{
-    infun_read(seleniumdrv, log, &quot;stdout&quot;, timeout = timeout, 
-        outfile = pfile[[&quot;out&quot;]], errfile = pfile[[&quot;err&quot;]])
-}
-&lt;bytecode: 0x000002875eadf1b0&gt;
-&lt;environment: 0x000002875eadb9e0&gt;
-
-$error
-function (timeout = 0L) 
-{
-    infun_read(seleniumdrv, log, &quot;stderr&quot;, timeout = timeout, 
-        outfile = pfile[[&quot;out&quot;]], errfile = pfile[[&quot;err&quot;]])
-}
-&lt;bytecode: 0x000002875eadeb58&gt;
-&lt;environment: 0x000002875eadb9e0&gt;
-
-$stop
-function () 
-{
-    kill_process(seleniumdrv)
-}
-&lt;bytecode: 0x000002875eade570&gt;
-&lt;environment: 0x000002875eadb9e0&gt;
-
-$log
-function () 
-{
-    infun_read(seleniumdrv, log, outfile = pfile[[&quot;out&quot;]], errfile = pfile[[&quot;err&quot;]])
-    as.list(log)
-}
-&lt;bytecode: 0x000002875eade3b0&gt;
-&lt;environment: 0x000002875eadb9e0&gt;</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5zZWxlbml1bV9vYmplY3QgPC0gc2VsZW5pdW0ocmV0Y29tbWFuZCA9IFQsIGNoZWNrID0gRilcblxuYGBgIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5nZXRfdGFibGVfZnJvbV9wYWdlIDwtIGZ1bmN0aW9uKHBhZ2UpIHtcbiAgXG4gIHRhYmxlcyA8LSBwYWdlICU+JVxuICAgIGh0bWxfbm9kZXMoJ3RhYmxlJykgJT4lXG4gICAgaHRtbF90YWJsZSgpXG4gIFxuICB0YWJsZSA8LSB0YWJsZXNbWzNdXVxuICByZXR1cm4odGFibGUpXG4gIFxufVxuXG5gYGAifQ== -->
 <pre class="r"><code>
-selenium_object &lt;- selenium(retcommand = T, check = F)
+get_table_from_page &lt;- function(page) {
+  
+  tables &lt;- page %&gt;%
+    html_nodes(&#39;table&#39;) %&gt;%
+    html_table()
+  
+  table &lt;- tables[[3]]
+  return(table)
+  
+}
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jIFN0YXJ0IGEgU2VsZW5pdW0gU2VydmVyIGFuZCBvcGVuIGEgYnJvd3NlciBzZXNzaW9uXG5cbnJlbW90ZV9kcml2ZXIgPC0gcnNEcml2ZXIoYnJvd3NlciA9IFwiY2hyb21lXCIsIGNocm9tZXZlciA9IFwiMTIzLjAuNjMxMi44NlwiLCB2ZXJib3NlID0gRkFMU0UsIHBvcnQgPSAyMTU0TClcbnJlbURyIDwtIHJlbW90ZV9kcml2ZXIkY2xpZW50XG5cbiMgTmF2aWdhdGUgdG8gdGhlIHdlYnBhZ2VcbnJlbURyJG5hdmlnYXRlKFwiaHR0cHM6Ly93d3cuYmFzZWJhbGwtcmVmZXJlbmNlLmNvbS90ZWFtcy9BUkkvMjAyMy5zaHRtbFwiKVxuXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5jbGVhbl90YWJsZSA8LSBmdW5jdGlvbih0YWJsZSkge1xuICBcbiAgZGYgPC0gdW5zZXJpYWxpemUoc2VyaWFsaXplKHRhYmxlLCBOVUxMKSlcbiAgZGYgPC0gZGZbLWMoMSwgMiwgMyksIF1cbiAgZGYgPC0gZGZbLCAxOjRdXG4gIG5hbWVzKGRmKSA8LSBjKCdSYW5rJywgJ1BsYXllcicsICdUZWFtJywgJ1Bvc2l0aW9uJylcbiAgcmV0dXJuKGRmKVxuICBcbn1cblxuYGBgIn0= -->
 <pre class="r"><code>
-# Start a Selenium Server and open a browser session
-
-remote_driver &lt;- rsDriver(browser = &quot;chrome&quot;, chromever = &quot;123.0.6312.86&quot;, verbose = FALSE, port = 2154L)
-remDr &lt;- remote_driver$client
-
-# Navigate to the webpage
-remDr$navigate(&quot;https://www.baseball-reference.com/teams/ARI/2023.shtml&quot;)
+clean_table &lt;- function(table) {
+  
+  df &lt;- unserialize(serialize(table, NULL))
+  df &lt;- df[-c(1, 2, 3), ]
+  df &lt;- df[, 1:4]
+  names(df) &lt;- c(&#39;Rank&#39;, &#39;Player&#39;, &#39;Team&#39;, &#39;Position&#39;)
+  return(df)
+  
+}
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGFibGVzIDwtIHJlbURyJGZpbmRFbGVtZW50cyh1c2luZyA9IFwiY3NzIHNlbGVjdG9yXCIsIFwidGFibGVcIilcblxuIyBHZXQgdGhlIHRoaXJkIHRhYmxlIGVsZW1lbnRcbnRoaXJkX3RhYmxlX2VsZW1lbnQgPC0gdGFibGVzW1szXV1cblxuIyBHZXQgdGhlIEhUTUwgb2YgdGhlIHRoaXJkIHRhYmxlXG50YWJsZV9odG1sIDwtIHRoaXJkX3RhYmxlX2VsZW1lbnQkZ2V0RWxlbWVudEF0dHJpYnV0ZShcIm91dGVySFRNTFwiKVtbMV1dXG5cbiMgQ29udmVydCB0aGUgSFRNTCB0byBhIGRhdGEgZnJhbWUgdXNpbmcgcnZlc3RcblxudGFibGVfZGYgPC0gcmVhZF9odG1sKHRhYmxlX2h0bWwpICU+JSBodG1sX3RhYmxlKCkgJT4lIC5bWzFdXVxuXG4jIFByaW50IHRoZSB0YWJsZVxucHJpbnQodGFibGVfZGYpXG5gYGAifQ== -->
-<pre class="r"><code>tables &lt;- remDr$findElements(using = &quot;css selector&quot;, &quot;table&quot;)
-
-# Get the third table element
-third_table_element &lt;- tables[[3]]
-
-# Get the HTML of the third table
-table_html &lt;- third_table_element$getElementAttribute(&quot;outerHTML&quot;)[[1]]
-
-# Convert the HTML to a data frame using rvest
-
-table_df &lt;- read_html(table_html) %&gt;% html_table() %&gt;% .[[1]]
-
-# Print the table
-print(table_df)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5sb2FkX3BhZ2VfYW5kX2NsZWFuX3RhYmxlIDwtIGZ1bmN0aW9uKHllYXIsIG9uUGFnZU9uZSkge1xuICBcbiAgcGFnZSA8LSBsb2FkX3BhZ2UoeWVhciwgb25QYWdlT25lKVxuICB0YWJsZSA8LSBnZXRfdGFibGVfZnJvbV9wYWdlKHBhZ2UpXG4gIHRhYmxlIDwtIGNsZWFuX3RhYmxlKHRhYmxlKVxuICByZXR1cm4odGFibGUpXG4gIFxufVxuXG5gYGAifQ== -->
+<pre class="r"><code>
+load_page_and_clean_table &lt;- function(year, onPageOne) {
+  
+  page &lt;- load_page(year, onPageOne)
+  table &lt;- get_table_from_page(page)
+  table &lt;- clean_table(table)
+  return(table)
+  
+}
+</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6NSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyI1IMOXIDMiXX19LCJyZGYiOiJINHNJQUFBQUFBQUFCbjFSVFUvQ1FCQWR1aFJERTVRRWZrQ1BlbWpEeDhVcmtlREZnMEZOdUM2N2E5MVFkc2kycVBIay96YWhidXN1MFEyeGgvYk5tM256OGJxY3I2YlJLZ0lBQW0xQ2dJUUdRdmowdUVpdUFkcUJDVnJRaG03OWZUZEZnNllTb0Y5WDJVVC9nYXA0TGtXRzhUM2xXaFNXSDl4aEVjOVVKbkpSeEhQa21kQXVOYXdsQzAwVmt3WEQrRlpTVmJwYy93WnoxSlJqdkVTMmtjZDJ3NW1XSDZpb0dVVzNxUGlhc2szaHJSSmVqcFB4MWVsZ2xJeitDd0NpcHRISjU0OFJvYUpiNFNZVFN3YXI4UkZOam1qcVNic2EzMUluNzlVbG4rWlZWZFdYUDRQbHRIQXpIQmx4V3RMMFdSdTlpUTZlNUF4M3BVUmxSRUg5bHpxZXVLVTk0bUt2NmsxNHdsNzJhcE5NdkRUWnFjeWEwckl1OUN3T2YySHlzMFZRV1huSHlqdENaVklKZDA1TzF5SjNuYmw0dGZEYytOSFlrZTYwVktXNzA3QkZXbUpKblNSaW1EdW11UndPM3pRS0FJcTZBZ0FBIn0= -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["X1"],"name":[1],"type":["chr"],"align":["left"]},{"label":["X2"],"name":[2],"type":["chr"],"align":["left"]},{"label":["X3"],"name":[3],"type":["lgl"],"align":["right"]}],"data":[{"1":"San Diego Padres","2":"(1-1)","3":"FALSE"},{"1":"Los Angeles Dodgers","2":"(1-1)","3":"FALSE"},{"1":"San Francisco Giants","2":"(0-0)","3":"FALSE"},{"1":"Colorado Rockies","2":"(0-0)","3":"FALSE"},{"1":"Arizona Diamondbacks","2":"(0-0)","3":"FALSE"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[5]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucmVtRHIkY2xvc2UoKSAjIENsb3NlIHRoZSBicm93c2VyIHNlc3Npb25cbnJlbW90ZV9kcml2ZXIkc2VydmVyJHN0b3AoKSAjIFN0b3BcblxuYGBgXG5gYGAifQ== -->
-<pre class="r"><code>```r
-remDr$close() # Close the browser session
-remote_driver$server$stop() # Stop
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5nZXRfZGF0YWZyYW1lX2Zvcl95ZWFyIDwtIGZ1bmN0aW9uKHllYXIpIHtcbiAgXG4gIGRmXzEgPC0gbG9hZF9wYWdlX2FuZF9jbGVhbl90YWJsZSh5ZWFyLCBUUlVFKVxuICBkZl8yIDwtIGxvYWRfcGFnZV9hbmRfY2xlYW5fdGFibGUoeWVhciwgRkFMU0UpXG4gIGNvbWJpbmVkX2RmIDwtIHJiaW5kKGRmXzEsIGRmXzIpXG4gIHJldHVybihjb21iaW5lZF9kZilcbiAgXG59XG5cbmBgYCJ9 -->
+<pre class="r"><code>
+get_dataframe_for_year &lt;- function(year) {
+  
+  df_1 &lt;- load_page_and_clean_table(year, TRUE)
+  df_2 &lt;- load_page_and_clean_table(year, FALSE)
+  combined_df &lt;- rbind(df_1, df_2)
+  return(combined_df)
+  
+}
 </code></pre>
-<p>```</p>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5zYXZlX2RhdGFmcmFtZV90b19jc3YgPC0gZnVuY3Rpb24oZGYsIHllYXIpIHtcbiAgXG4gIGZpbGVfbmFtZSA9IHBhc3RlKCd0b3BfMTAwX2VhY2hfeWVhci90b3BfcGxheWVyc18nLCB5ZWFyLCAnLmNzdicsIHNlcCA9ICcnKVxuICB3cml0ZS5jc3YoZGYsIGZpbGUgPSBmaWxlX25hbWUsIHJvdy5uYW1lcyA9IEZBTFNFKVxuICBcbn1cblxuYGBgIn0= -->
+<pre class="r"><code>
+save_dataframe_to_csv &lt;- function(df, year) {
+  
+  file_name = paste(&#39;top_100_each_year/top_players_&#39;, year, &#39;.csv&#39;, sep = &#39;&#39;)
+  write.csv(df, file = file_name, row.names = FALSE)
+  
+}
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5sYXN0X3llYXIgPC0gYXMubnVtZXJpYyhmb3JtYXQoU3lzLkRhdGUoKSwgJyVZJykpIC0gMVxubnVtX3llYXJzIDwtIGxhc3RfeWVhciAtIDIwMDggKyAxXG55ZWFycyA8LSBzZXEobGFzdF95ZWFyLCBieSA9IC0xLCBsZW5ndGgub3V0ID0gbnVtX3llYXJzKVxuXG5mb3IgKHllYXIgaW4geWVhcnMpIHtcbiAgZGYgPC0gZ2V0X2RhdGFmcmFtZV9mb3JfeWVhcigyMDIzKVxuICBzYXZlX2RhdGFmcmFtZV90b19jc3YoZGYsIHllYXIpXG59XG5cbmBgYCJ9 -->
+<pre class="r"><code>
+last_year &lt;- as.numeric(format(Sys.Date(), &#39;%Y&#39;)) - 1
+num_years &lt;- last_year - 2008 + 1
+years &lt;- seq(last_year, by = -1, length.out = num_years)
+
+for (year in years) {
+  df &lt;- get_dataframe_for_year(2023)
+  save_dataframe_to_csv(df, year)
+}
+</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQovLyB3ZSBpbnN0YWxsZWQgc2VsZW5pdW0NCi8vIHdlIHVzZWQgZnJlZSBwb3J0cw0KDQpgYGB7cn0NCg0KbGlicmFyeShuZXRzdGF0KQ0KbGlicmFyeShSU2VsZW5pdW0pDQpsaWJyYXJ5KHdkbWFuKQ0KbGlicmFyeShSU2VsZW5pdW0pDQpsaWJyYXJ5KHJ2ZXN0KQ0KDQpgYGANCg0KYGBge3J9DQoNCnNlbGVuaXVtKCkNCg0KYGBgDQoNCmBgYHtyfQ0KDQpzZWxlbml1bV9vYmplY3QgPC0gc2VsZW5pdW0ocmV0Y29tbWFuZCA9IFQsIGNoZWNrID0gRikNCg0KYGBgDQoNCmBgYHtyfQ0KDQojIFN0YXJ0IGEgU2VsZW5pdW0gU2VydmVyIGFuZCBvcGVuIGEgYnJvd3NlciBzZXNzaW9uDQoNCnJlbW90ZV9kcml2ZXIgPC0gcnNEcml2ZXIoYnJvd3NlciA9ICJjaHJvbWUiLCBjaHJvbWV2ZXIgPSAiMTIzLjAuNjMxMi44NiIsIHZlcmJvc2UgPSBGQUxTRSwgcG9ydCA9IDIxNTRMKQ0KcmVtRHIgPC0gcmVtb3RlX2RyaXZlciRjbGllbnQNCg0KIyBOYXZpZ2F0ZSB0byB0aGUgd2VicGFnZQ0KcmVtRHIkbmF2aWdhdGUoImh0dHBzOi8vd3d3LmJhc2ViYWxsLXJlZmVyZW5jZS5jb20vdGVhbXMvQVJJLzIwMjMuc2h0bWwiKQ0KDQpgYGANCg0KYGBge3J9DQp0YWJsZXMgPC0gcmVtRHIkZmluZEVsZW1lbnRzKHVzaW5nID0gImNzcyBzZWxlY3RvciIsICJ0YWJsZSIpDQoNCiMgR2V0IHRoZSB0aGlyZCB0YWJsZSBlbGVtZW50DQp0aGlyZF90YWJsZV9lbGVtZW50IDwtIHRhYmxlc1tbM11dDQoNCiMgR2V0IHRoZSBIVE1MIG9mIHRoZSB0aGlyZCB0YWJsZQ0KdGFibGVfaHRtbCA8LSB0aGlyZF90YWJsZV9lbGVtZW50JGdldEVsZW1lbnRBdHRyaWJ1dGUoIm91dGVySFRNTCIpW1sxXV0NCg0KIyBDb252ZXJ0IHRoZSBIVE1MIHRvIGEgZGF0YSBmcmFtZSB1c2luZyBydmVzdA0KDQp0YWJsZV9kZiA8LSByZWFkX2h0bWwodGFibGVfaHRtbCkgJT4lIGh0bWxfdGFibGUoKSAlPiUgLltbMV1dDQoNCiMgUHJpbnQgdGhlIHRhYmxlDQpwcmludCh0YWJsZV9kZikNCmBgYA0KDQoNCg0KYGBge3J9DQpyZW1EciRjbG9zZSgpICMgQ2xvc2UgdGhlIGJyb3dzZXIgc2Vzc2lvbg0KcmVtb3RlX2RyaXZlciRzZXJ2ZXIkc3RvcCgpICMgU3RvcA0KDQpgYGA=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogJ1IgTm90ZWJvb2snDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQovLyB3ZSBpbnN0YWxsZWQgc2VsZW5pdW0NCi8vIHdlIHVzZWQgZnJlZSBwb3J0cw0KDQpgYGB7cn0NCg0KbGlicmFyeShydmVzdCkNCg0Kc2V0d2QoJ0M6L1VzZXJzL2FsZWtwL09uZURyaXZlIC0gSWxsaW5vaXMgSW5zdGl0dXRlIG9mIFRlY2hub2xvZ3kvNXRoIFllYXIvUzI0L0NTUCA1NzEvUHJvamVjdC9CYXNlYmFsbC1XQVItaW4tUicpDQoNCmBgYA0KDQpgYGB7cn0NCg0KbG9hZF9wYWdlIDwtIGZ1bmN0aW9uKHllYXIsIG9uUGFnZU9uZSkgew0KICANCiAgYmFzZSA8LSAnaHR0cHM6Ly93d3cuZXNwbi5jb20vbWxiL3BsYXllcnJhdGluZ3MvXy95ZWFyLycNCiAgdXJsIDwtIGlmIChvblBhZ2VPbmUpIHBhc3RlKGJhc2UsIHllYXIsIHNlcCA9ICcnKSBlbHNlIHBhc3RlKGJhc2UsIHllYXIsICcvcGFnZS8yJywgc2VwID0gJycpDQogIA0KICBjb25uZWN0ZWQgPC0gRkFMU0UNCiAgcGFnZSA8LSBOVUxMDQogIA0KICB3aGlsZSghY29ubmVjdGVkKSB7DQogICAgcmVzdWx0IDwtIHRyeUNhdGNoKHsNCiAgICAgIGNvbiA8LSB1cmwodXJsLCAncmInKQ0KICAgICAgcGFnZSA8LSByZWFkX2h0bWwoY29uKQ0KICAgICAgY2xvc2UoY29uKQ0KICAgICAgY29ubmVjdGVkIDwtIFRSVUUNCiAgICB9LCBlcnJvciA9IGZ1bmN0aW9uKGUpIHsNCiAgICAgIGNhdCgnXG4nLCB5ZWFyLCBvblBhZ2VPbmUsICdcblxuJykNCiAgICB9KQ0KICB9DQogIA0KICByZXR1cm4ocGFnZSkNCiAgDQp9DQoNCmBgYA0KDQpgYGB7cn0NCg0KZ2V0X3RhYmxlX2Zyb21fcGFnZSA8LSBmdW5jdGlvbihwYWdlKSB7DQogIA0KICB0YWJsZXMgPC0gcGFnZSAlPiUNCiAgICBodG1sX25vZGVzKCd0YWJsZScpICU+JQ0KICAgIGh0bWxfdGFibGUoKQ0KICANCiAgdGFibGUgPC0gdGFibGVzW1szXV0NCiAgcmV0dXJuKHRhYmxlKQ0KICANCn0NCg0KYGBgDQoNCmBgYHtyfQ0KDQpjbGVhbl90YWJsZSA8LSBmdW5jdGlvbih0YWJsZSkgew0KICANCiAgZGYgPC0gdW5zZXJpYWxpemUoc2VyaWFsaXplKHRhYmxlLCBOVUxMKSkNCiAgZGYgPC0gZGZbLWMoMSwgMiwgMyksIF0NCiAgZGYgPC0gZGZbLCAxOjRdDQogIG5hbWVzKGRmKSA8LSBjKCdSYW5rJywgJ1BsYXllcicsICdUZWFtJywgJ1Bvc2l0aW9uJykNCiAgcmV0dXJuKGRmKQ0KICANCn0NCg0KYGBgDQoNCmBgYHtyfQ0KDQpsb2FkX3BhZ2VfYW5kX2NsZWFuX3RhYmxlIDwtIGZ1bmN0aW9uKHllYXIsIG9uUGFnZU9uZSkgew0KICANCiAgcGFnZSA8LSBsb2FkX3BhZ2UoeWVhciwgb25QYWdlT25lKQ0KICB0YWJsZSA8LSBnZXRfdGFibGVfZnJvbV9wYWdlKHBhZ2UpDQogIHRhYmxlIDwtIGNsZWFuX3RhYmxlKHRhYmxlKQ0KICByZXR1cm4odGFibGUpDQogIA0KfQ0KDQpgYGANCg0KYGBge3J9DQoNCmdldF9kYXRhZnJhbWVfZm9yX3llYXIgPC0gZnVuY3Rpb24oeWVhcikgew0KICANCiAgZGZfMSA8LSBsb2FkX3BhZ2VfYW5kX2NsZWFuX3RhYmxlKHllYXIsIFRSVUUpDQogIGRmXzIgPC0gbG9hZF9wYWdlX2FuZF9jbGVhbl90YWJsZSh5ZWFyLCBGQUxTRSkNCiAgY29tYmluZWRfZGYgPC0gcmJpbmQoZGZfMSwgZGZfMikNCiAgcmV0dXJuKGNvbWJpbmVkX2RmKQ0KICANCn0NCg0KYGBgDQoNCmBgYHtyfQ0KDQpzYXZlX2RhdGFmcmFtZV90b19jc3YgPC0gZnVuY3Rpb24oZGYsIHllYXIpIHsNCiAgDQogIGZpbGVfbmFtZSA9IHBhc3RlKCd0b3BfMTAwX2VhY2hfeWVhci90b3BfcGxheWVyc18nLCB5ZWFyLCAnLmNzdicsIHNlcCA9ICcnKQ0KICB3cml0ZS5jc3YoZGYsIGZpbGUgPSBmaWxlX25hbWUsIHJvdy5uYW1lcyA9IEZBTFNFKQ0KICANCn0NCg0KYGBgDQoNCmBgYHtyfQ0KDQpsYXN0X3llYXIgPC0gYXMubnVtZXJpYyhmb3JtYXQoU3lzLkRhdGUoKSwgJyVZJykpIC0gMQ0KbnVtX3llYXJzIDwtIGxhc3RfeWVhciAtIDIwMDggKyAxDQp5ZWFycyA8LSBzZXEobGFzdF95ZWFyLCBieSA9IC0xLCBsZW5ndGgub3V0ID0gbnVtX3llYXJzKQ0KDQpmb3IgKHllYXIgaW4geWVhcnMpIHsNCiAgZGYgPC0gZ2V0X2RhdGFmcmFtZV9mb3JfeWVhcigyMDIzKQ0KICBzYXZlX2RhdGFmcmFtZV90b19jc3YoZGYsIHllYXIpDQp9DQoNCmBgYA0K</div>
 
 
 
@@ -1940,7 +1938,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("Notebook.Rmd");
+  window.initializeSourceEmbed("Top100Scraping.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>

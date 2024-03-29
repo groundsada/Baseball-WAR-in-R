@@ -4,27 +4,31 @@ output: html_notebook
 ---
 
 // we installed selenium
-// we used free prots
-
+// we used free ports
 
 ```{r}
+
 library(netstat)
 library(RSelenium)
 library(wdman)
-```
-
-```{r}
-selenium()
-```
-
-```{r}
-selenium_object <- selenium(retcommand = T, check = F)
-```
-
-
-
-```{r}
 library(RSelenium)
+library(rvest)
+
+```
+
+```{r}
+
+selenium()
+
+```
+
+```{r}
+
+selenium_object <- selenium(retcommand = T, check = F)
+
+```
+
+```{r}
 
 # Start a Selenium Server and open a browser session
 
@@ -46,7 +50,7 @@ third_table_element <- tables[[3]]
 table_html <- third_table_element$getElementAttribute("outerHTML")[[1]]
 
 # Convert the HTML to a data frame using rvest
-library(rvest)
+
 table_df <- read_html(table_html) %>% html_table() %>% .[[1]]
 
 # Print the table
