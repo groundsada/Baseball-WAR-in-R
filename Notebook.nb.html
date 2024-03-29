@@ -1842,36 +1842,43 @@ selenium_object &lt;- selenium(retcommand = T, check = F)
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jIFN0YXJ0IGEgU2VsZW5pdW0gU2VydmVyIGFuZCBvcGVuIGEgYnJvd3NlciBzZXNzaW9uXG5cbnJlbW90ZV9kcml2ZXIgPC0gcnNEcml2ZXIoYnJvd3NlciA9IFwiY2hyb21lXCIsIGNocm9tZXZlciA9IFwiMTIzLjAuNjMxMi44NlwiLCB2ZXJib3NlID0gRkFMU0UsIHBvcnQgPSAyMTU0TClcbnJlbURyIDwtIHJlbW90ZV9kcml2ZXIkY2xpZW50XG5cbiMgTmF2aWdhdGUgdG8gdGhlIHdlYnBhZ2VcbnJlbURyJG5hdmlnYXRlKFwiaHR0cHM6Ly93d3cuYmFzZWJhbGwtcmVmZXJlbmNlLmNvbS90ZWFtcy9BUkkvMjAyMy5zaHRtbFwiKVxuXG5gYGAifQ== -->
-<pre class="r"><code>
-# Start a Selenium Server and open a browser session
+
 
 remote_driver &lt;- rsDriver(browser = &quot;chrome&quot;, chromever = &quot;123.0.6312.86&quot;, verbose = FALSE, port = 2154L)
 remDr &lt;- remote_driver$client
 
-# Navigate to the webpage
 remDr$navigate(&quot;https://www.baseball-reference.com/teams/ARI/2023.shtml&quot;)
+
+tables &lt;- remDr$findElements(using = &quot;css selector&quot;, &quot;table&quot;)
+
+third_table_element &lt;- tables[[3]]
+
+table_html &lt;- third_table_element$getElementAttribute(&quot;outerHTML&quot;)[[1]]
+
+library(rvest)
+table_df &lt;- read_html(table_html) %&gt;% html_table() %&gt;% .[[1]]
+
+print(table_df)
+
+remDr$close()
+remote_driver$server$stop()
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGFibGVzIDwtIHJlbURyJGZpbmRFbGVtZW50cyh1c2luZyA9IFwiY3NzIHNlbGVjdG9yXCIsIFwidGFibGVcIilcblxuIyBHZXQgdGhlIHRoaXJkIHRhYmxlIGVsZW1lbnRcbnRoaXJkX3RhYmxlX2VsZW1lbnQgPC0gdGFibGVzW1szXV1cblxuIyBHZXQgdGhlIEhUTUwgb2YgdGhlIHRoaXJkIHRhYmxlXG50YWJsZV9odG1sIDwtIHRoaXJkX3RhYmxlX2VsZW1lbnQkZ2V0RWxlbWVudEF0dHJpYnV0ZShcIm91dGVySFRNTFwiKVtbMV1dXG5cbiMgQ29udmVydCB0aGUgSFRNTCB0byBhIGRhdGEgZnJhbWUgdXNpbmcgcnZlc3RcblxudGFibGVfZGYgPC0gcmVhZF9odG1sKHRhYmxlX2h0bWwpICU+JSBodG1sX3RhYmxlKCkgJT4lIC5bWzFdXVxuXG4jIFByaW50IHRoZSB0YWJsZVxucHJpbnQodGFibGVfZGYpXG5gYGAifQ== -->
-<pre class="r"><code>tables &lt;- remDr$findElements(using = &quot;css selector&quot;, &quot;table&quot;)
 
-# Get the third table element
-third_table_element &lt;- tables[[3]]
 
-# Get the HTML of the third table
-table_html &lt;- third_table_element$getElementAttribute(&quot;outerHTML&quot;)[[1]]
+The following objects are masked from ‘package:stats’:
 
-# Convert the HTML to a data frame using rvest
+    filter, lag
 
-table_df &lt;- read_html(table_html) %&gt;% html_table() %&gt;% .[[1]]
 
-# Print the table
-print(table_df)</code></pre>
+
+remote_driver &lt;- rsDriver(browser = &quot;chrome&quot;, chromever = &quot;123.0.6312.86&quot;, verbose = FALSE, port = 4454L)
+remDr &lt;- remote_driver$client
+</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6NSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyI1IMOXIDMiXX19LCJyZGYiOiJINHNJQUFBQUFBQUFCbjFSVFUvQ1FCQWR1aFJERTVRRWZrQ1BlbWpEeDhVcmtlREZnMEZOdUM2N2E5MVFkc2kycVBIay96YWhidXN1MFEyeGgvYk5tM256OGJxY3I2YlJLZ0lBQW0xQ2dJUUdRdmowdUVpdUFkcUJDVnJRaG03OWZUZEZnNllTb0Y5WDJVVC9nYXA0TGtXRzhUM2xXaFNXSDl4aEVjOVVKbkpSeEhQa21kQXVOYXdsQzAwVmt3WEQrRlpTVmJwYy93WnoxSlJqdkVTMmtjZDJ3NW1XSDZpb0dVVzNxUGlhc2szaHJSSmVqcFB4MWVsZ2xJeitDd0NpcHRISjU0OFJvYUpiNFNZVFN3YXI4UkZOam1qcVNic2EzMUluNzlVbG4rWlZWZFdYUDRQbHRIQXpIQmx4V3RMMFdSdTlpUTZlNUF4M3BVUmxSRUg5bHpxZXVLVTk0bUt2NmsxNHdsNzJhcE5NdkRUWnFjeWEwckl1OUN3T2YySHlzMFZRV1huSHlqdENaVklKZDA1TzF5SjNuYmw0dGZEYytOSFlrZTYwVktXNzA3QkZXbUpKblNSaW1EdW11UndPM3pRS0FJcTZBZ0FBIn0= -->
 <div data-pagedtable="false">
@@ -1884,16 +1891,136 @@ print(table_df)</code></pre>
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucmVtRHIkY2xvc2UoKSAjIENsb3NlIHRoZSBicm93c2VyIHNlc3Npb25cbnJlbW90ZV9kcml2ZXIkc2VydmVyJHN0b3AoKSAjIFN0b3BcblxuYGBgXG5gYGAifQ== -->
-<pre class="r"><code>```r
-remDr$close() # Close the browser session
-remote_driver$server$stop() # Stop
+
 </code></pre>
 <p>```</p>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZG93bmxvYWRfZGF0YSA8LSBmdW5jdGlvbih0ZWFtLCB5ZWFyKSB7XG4gIGNvcnJlY3RfdGVhbSA8LSBpZmVsc2UodGVhbSAlaW4lIG5hbWVzKHRlYW1fbWFwcGluZykgJiYgeWVhciA8IDIwMDgsIHRlYW1fbWFwcGluZ1tbdGVhbV1dLCB0ZWFtKVxuICBcbiAgZmlsZV9wYXRoMSA8LSBwYXN0ZTAoXCJkYXRhMS9cIiwgdGVhbSwgXCJfXCIsIHllYXIsIFwiX3RhYmxlMS5jc3ZcIilcbiAgZmlsZV9wYXRoMyA8LSBwYXN0ZTAoXCJkYXRhMi9cIiwgdGVhbSwgXCJfXCIsIHllYXIsIFwiX3RhYmxlMy5jc3ZcIilcbiAgXG4gIGlmICghZmlsZS5leGlzdHMoZmlsZV9wYXRoMSkgfHwgIWZpbGUuZXhpc3RzKGZpbGVfcGF0aDMpKSB7XG4gICAgdXJsIDwtIHBhc3RlMChcImh0dHBzOi8vd3d3LmJhc2ViYWxsLXJlZmVyZW5jZS5jb20vdGVhbXMvXCIsIGNvcnJlY3RfdGVhbSwgXCIvXCIsIHllYXIsIFwiLnNodG1sXCIpXG4gICAgcmVtRHIkbmF2aWdhdGUodXJsKVxuICAgIFxuICAgIHRhYmxlcyA8LSByZW1EciRmaW5kRWxlbWVudHModXNpbmcgPSBcImNzcyBzZWxlY3RvclwiLCBcInRhYmxlXCIpXG4gICAgXG4gICAgaWYgKCFmaWxlLmV4aXN0cyhmaWxlX3BhdGgxKSAmJiBsZW5ndGgodGFibGVzKSA+PSAxKSB7XG4gICAgICBmaXJzdF90YWJsZV9lbGVtZW50IDwtIHRhYmxlc1tbMV1dXG4gICAgICBmaXJzdF90YWJsZV9odG1sIDwtIGZpcnN0X3RhYmxlX2VsZW1lbnQkZ2V0RWxlbWVudEF0dHJpYnV0ZShcIm91dGVySFRNTFwiKVtbMV1dXG4gICAgICBmaXJzdF90YWJsZV9kZiA8LSByZWFkX2h0bWwoZmlyc3RfdGFibGVfaHRtbCkgJT4lIGh0bWxfdGFibGUoKSAlPiUgLltbMV1dICU+JSBjbGVhbl9uYW1lcygpXG4gICAgICB3cml0ZS5jc3YoZmlyc3RfdGFibGVfZGYsIGZpbGUgPSBmaWxlX3BhdGgxLCByb3cubmFtZXMgPSBGQUxTRSlcbiAgICB9XG4gICAgaWYgKCFmaWxlLmV4aXN0cyhmaWxlX3BhdGgzKSAmJiBsZW5ndGgodGFibGVzKSA+PSAzKSB7XG4gICAgICB0aGlyZF90YWJsZV9lbGVtZW50IDwtIHRhYmxlc1tbM11dXG4gICAgICB0aGlyZF90YWJsZV9odG1sIDwtIHRoaXJkX3RhYmxlX2VsZW1lbnQkZ2V0RWxlbWVudEF0dHJpYnV0ZShcIm91dGVySFRNTFwiKVtbMV1dXG4gICAgICB0aGlyZF90YWJsZV9kZiA8LSByZWFkX2h0bWwodGhpcmRfdGFibGVfaHRtbCkgJT4lIGh0bWxfdGFibGUoKSAlPiUgLltbMV1dICU+JSBjbGVhbl9uYW1lcygpXG4gICAgICB3cml0ZS5jc3YodGhpcmRfdGFibGVfZGYsIGZpbGUgPSBmaWxlX3BhdGgzLCByb3cubmFtZXMgPSBGQUxTRSlcbiAgICB9XG4gIH1cbn1cbmBgYCJ9 -->
+<pre class="r"><code>download_data &lt;- function(team, year) {
+  correct_team &lt;- ifelse(team %in% names(team_mapping) &amp;&amp; year &lt; 2008, team_mapping[[team]], team)
+  
+  file_path1 &lt;- paste0(&quot;data1/&quot;, team, &quot;_&quot;, year, &quot;_table1.csv&quot;)
+  file_path3 &lt;- paste0(&quot;data2/&quot;, team, &quot;_&quot;, year, &quot;_table3.csv&quot;)
+  
+  if (!file.exists(file_path1) || !file.exists(file_path3)) {
+    url &lt;- paste0(&quot;https://www.baseball-reference.com/teams/&quot;, correct_team, &quot;/&quot;, year, &quot;.shtml&quot;)
+    remDr$navigate(url)
+    
+    tables &lt;- remDr$findElements(using = &quot;css selector&quot;, &quot;table&quot;)
+    
+    if (!file.exists(file_path1) &amp;&amp; length(tables) &gt;= 1) {
+      first_table_element &lt;- tables[[1]]
+      first_table_html &lt;- first_table_element$getElementAttribute(&quot;outerHTML&quot;)[[1]]
+      first_table_df &lt;- read_html(first_table_html) %&gt;% html_table() %&gt;% .[[1]] %&gt;% clean_names()
+      write.csv(first_table_df, file = file_path1, row.names = FALSE)
+    }
+    if (!file.exists(file_path3) &amp;&amp; length(tables) &gt;= 3) {
+      third_table_element &lt;- tables[[3]]
+      third_table_html &lt;- third_table_element$getElementAttribute(&quot;outerHTML&quot;)[[1]]
+      third_table_df &lt;- read_html(third_table_html) %&gt;% html_table() %&gt;% .[[1]] %&gt;% clean_names()
+      write.csv(third_table_df, file = file_path3, row.names = FALSE)
+    }
+  }
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZm9yICh0ZWFtIGluIHRlYW1zKSB7XG4gIGZvciAoeWVhciBpbiB5ZWFycykge1xuICAgIHdoaWxlIChUUlVFKSB7XG4gICAgICB0cnlDYXRjaCh7XG4gICAgICAgIGRvd25sb2FkX2RhdGEodGVhbSwgeWVhcilcbiAgICAgICAgYnJlYWtcbiAgICAgIH0sIGVycm9yID0gZnVuY3Rpb24oZSkge1xuICAgICAgICBjYXQoXCJFcnJvciBmb3JcIiwgdGVhbSwgeWVhciwgXCI6XCIsIGUkbWVzc2FnZSwgXCItIHJldHJ5aW5nLi4uXFxuXCIpXG4gICAgICB9KVxuICAgIH1cbiAgfVxufVxuYGBgIn0= -->
+<pre class="r"><code>for (team in teams) {
+  for (year in years) {
+    while (TRUE) {
+      tryCatch({
+        download_data(team, year)
+        break
+      }, error = function(e) {
+        cat(&quot;Error for&quot;, team, year, &quot;:&quot;, e$message, &quot;- retrying...\n&quot;)
+      })
+    }
+  }
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVtRHIkY2xvc2UoKVxucmVtb3RlX2RyaXZlciRzZXJ2ZXIkc3RvcCgpXG5cbmBgYCJ9 -->
+<pre class="r"><code>remDr$close()
+remote_driver$server$stop()
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZXhwZWN0ZWRfZmlsZXNfZGF0YTEgPC0gc2FwcGx5KHllYXJzLCBmdW5jdGlvbih5ZWFyKSB7XG4gIHBhc3RlMChcImRhdGExL1wiLCB0ZWFtcywgXCJfXCIsIHllYXIsIFwiX3RhYmxlMS5jc3ZcIilcbn0sIHNpbXBsaWZ5ID0gRkFMU0UpICU+JSB1bmxpc3QoKVxuXG5leHBlY3RlZF9maWxlc19kYXRhMiA8LSBzYXBwbHkoeWVhcnMsIGZ1bmN0aW9uKHllYXIpIHtcbiAgcGFzdGUwKFwiZGF0YTIvXCIsIHRlYW1zLCBcIl9cIiwgeWVhciwgXCJfdGFibGUzLmNzdlwiKVxufSwgc2ltcGxpZnkgPSBGQUxTRSkgJT4lIHVubGlzdCgpXG5cbmV4cGVjdGVkX2ZpbGVzIDwtIGMoZXhwZWN0ZWRfZmlsZXNfZGF0YTEsIGV4cGVjdGVkX2ZpbGVzX2RhdGEyKVxuXG5hY3R1YWxfZmlsZXNfZGF0YTEgPC0gbGlzdC5maWxlcyhcImRhdGExXCIsIGZ1bGwubmFtZXMgPSBUUlVFKVxuYWN0dWFsX2ZpbGVzX2RhdGEyIDwtIGxpc3QuZmlsZXMoXCJkYXRhMlwiLCBmdWxsLm5hbWVzID0gVFJVRSlcbmFjdHVhbF9maWxlcyA8LSBjKGFjdHVhbF9maWxlc19kYXRhMSwgYWN0dWFsX2ZpbGVzX2RhdGEyKVxuXG5taXNzaW5nX2ZpbGVzIDwtIHNldGRpZmYoZXhwZWN0ZWRfZmlsZXMsIGFjdHVhbF9maWxlcylcblxuaWYgKGxlbmd0aChtaXNzaW5nX2ZpbGVzKSA+IDApIHtcbiAgY2F0KFwiTWlzc2luZyBmaWxlczpcXG5cIilcbiAgcHJpbnQobWlzc2luZ19maWxlcylcbn0gZWxzZSB7XG4gIGNhdChcIkFsbCBmaWxlcyBoYXZlIGJlZW4gZG93bmxvYWRlZC5cXG5cIilcbn1cblxuYGBgIn0= -->
+<pre class="r"><code>expected_files_data1 &lt;- sapply(years, function(year) {
+  paste0(&quot;data1/&quot;, teams, &quot;_&quot;, year, &quot;_table1.csv&quot;)
+}, simplify = FALSE) %&gt;% unlist()
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQovLyB3ZSBpbnN0YWxsZWQgc2VsZW5pdW0NCi8vIHdlIHVzZWQgZnJlZSBwb3J0cw0KDQpgYGB7cn0NCg0KbGlicmFyeShuZXRzdGF0KQ0KbGlicmFyeShSU2VsZW5pdW0pDQpsaWJyYXJ5KHdkbWFuKQ0KbGlicmFyeShSU2VsZW5pdW0pDQpsaWJyYXJ5KHJ2ZXN0KQ0KDQpgYGANCg0KYGBge3J9DQoNCnNlbGVuaXVtKCkNCg0KYGBgDQoNCmBgYHtyfQ0KDQpzZWxlbml1bV9vYmplY3QgPC0gc2VsZW5pdW0ocmV0Y29tbWFuZCA9IFQsIGNoZWNrID0gRikNCg0KYGBgDQoNCmBgYHtyfQ0KDQojIFN0YXJ0IGEgU2VsZW5pdW0gU2VydmVyIGFuZCBvcGVuIGEgYnJvd3NlciBzZXNzaW9uDQoNCnJlbW90ZV9kcml2ZXIgPC0gcnNEcml2ZXIoYnJvd3NlciA9ICJjaHJvbWUiLCBjaHJvbWV2ZXIgPSAiMTIzLjAuNjMxMi44NiIsIHZlcmJvc2UgPSBGQUxTRSwgcG9ydCA9IDIxNTRMKQ0KcmVtRHIgPC0gcmVtb3RlX2RyaXZlciRjbGllbnQNCg0KIyBOYXZpZ2F0ZSB0byB0aGUgd2VicGFnZQ0KcmVtRHIkbmF2aWdhdGUoImh0dHBzOi8vd3d3LmJhc2ViYWxsLXJlZmVyZW5jZS5jb20vdGVhbXMvQVJJLzIwMjMuc2h0bWwiKQ0KDQpgYGANCg0KYGBge3J9DQp0YWJsZXMgPC0gcmVtRHIkZmluZEVsZW1lbnRzKHVzaW5nID0gImNzcyBzZWxlY3RvciIsICJ0YWJsZSIpDQoNCiMgR2V0IHRoZSB0aGlyZCB0YWJsZSBlbGVtZW50DQp0aGlyZF90YWJsZV9lbGVtZW50IDwtIHRhYmxlc1tbM11dDQoNCiMgR2V0IHRoZSBIVE1MIG9mIHRoZSB0aGlyZCB0YWJsZQ0KdGFibGVfaHRtbCA8LSB0aGlyZF90YWJsZV9lbGVtZW50JGdldEVsZW1lbnRBdHRyaWJ1dGUoIm91dGVySFRNTCIpW1sxXV0NCg0KIyBDb252ZXJ0IHRoZSBIVE1MIHRvIGEgZGF0YSBmcmFtZSB1c2luZyBydmVzdA0KDQp0YWJsZV9kZiA8LSByZWFkX2h0bWwodGFibGVfaHRtbCkgJT4lIGh0bWxfdGFibGUoKSAlPiUgLltbMV1dDQoNCiMgUHJpbnQgdGhlIHRhYmxlDQpwcmludCh0YWJsZV9kZikNCmBgYA0KDQoNCg0KYGBge3J9DQpyZW1EciRjbG9zZSgpICMgQ2xvc2UgdGhlIGJyb3dzZXIgc2Vzc2lvbg0KcmVtb3RlX2RyaXZlciRzZXJ2ZXIkc3RvcCgpICMgU3RvcA0KDQpgYGA=</div>
+expected_files_data2 &lt;- sapply(years, function(year) {
+  paste0(&quot;data2/&quot;, teams, &quot;_&quot;, year, &quot;_table3.csv&quot;)
+}, simplify = FALSE) %&gt;% unlist()
+
+expected_files &lt;- c(expected_files_data1, expected_files_data2)
+
+actual_files_data1 &lt;- list.files(&quot;data1&quot;, full.names = TRUE)
+actual_files_data2 &lt;- list.files(&quot;data2&quot;, full.names = TRUE)
+actual_files &lt;- c(actual_files_data1, actual_files_data2)
+
+missing_files &lt;- setdiff(expected_files, actual_files)
+
+if (length(missing_files) &gt; 0) {
+  cat(&quot;Missing files:\n&quot;)
+  print(missing_files)
+} else {
+  cat(&quot;All files have been downloaded.\n&quot;)
+}
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGlyLmNyZWF0ZShcImRhdGFzZXRcIiwgc2hvd1dhcm5pbmdzID0gRkFMU0UpXG5cbm1lcmdlX2Nzdl9maWxlcyA8LSBmdW5jdGlvbihpbnB1dF9mb2xkZXIsIG91dHB1dF9maWxlKSB7XG4gIGFsbF9maWxlcyA8LSBsaXN0LmZpbGVzKGlucHV0X2ZvbGRlciwgZnVsbC5uYW1lcyA9IFRSVUUsIHBhdHRlcm4gPSBcIlxcXFwuY3N2JFwiKVxuICBhbGxfZGF0YSA8LSBsYXBwbHkoYWxsX2ZpbGVzLCBmdW5jdGlvbihmaWxlKSB7XG4gICAgZGF0YSA8LSByZWFkLmNzdihmaWxlKVxuICAgIGZpbGVfcGFydHMgPC0gc3Ryc3BsaXQoYmFzZW5hbWUoZmlsZSksIFwiX1wiKVtbMV1dXG4gICAgZGF0YSRUZWFtIDwtIGZpbGVfcGFydHNbMV1cbiAgICBkYXRhJFNlYXNvbiA8LSBhcy5udW1lcmljKGZpbGVfcGFydHNbMl0pXG4gICAgcmV0dXJuKGRhdGEpXG4gIH0pXG4gIG1lcmdlZF9kYXRhIDwtIGJpbmRfcm93cyhhbGxfZGF0YSkgJT4lXG4gICAgYXJyYW5nZShUZWFtLCBTZWFzb24sIE5hbWUpICAjIEFzc3VtaW5nIHRoZXJlIGlzIGEgJ05hbWUnIGNvbHVtblxuICB3cml0ZS5jc3YobWVyZ2VkX2RhdGEsIGZpbGUgPSBvdXRwdXRfZmlsZSwgcm93Lm5hbWVzID0gRkFMU0UpXG59XG5gYGAifQ== -->
+<pre class="r"><code>dir.create(&quot;dataset&quot;, showWarnings = FALSE)
+
+merge_csv_files &lt;- function(input_folder, output_file) {
+  all_files &lt;- list.files(input_folder, full.names = TRUE, pattern = &quot;\\.csv$&quot;)
+  all_data &lt;- lapply(all_files, function(file) {
+    data &lt;- read.csv(file)
+    file_parts &lt;- strsplit(basename(file), &quot;_&quot;)[[1]]
+    data$Team &lt;- file_parts[1]
+    data$Season &lt;- as.numeric(file_parts[2])
+    return(data)
+  })
+  merged_data &lt;- bind_rows(all_data) %&gt;%
+    arrange(Team, Season, Name)  # Assuming there is a &#39;Name&#39; column
+  write.csv(merged_data, file = output_file, row.names = FALSE)
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWVyZ2VfY3N2X2ZpbGVzKFwiZGF0YTFcIiwgXCJkYXRhc2V0L2RhdGExLmNzdlwiKVxubWVyZ2VfY3N2X2ZpbGVzKFwiZGF0YTJcIiwgXCJkYXRhc2V0L2RhdGEyLmNzdlwiKVxuYGBgIn0= -->
+<pre class="r"><code>merge_csv_files(&quot;data1&quot;, &quot;dataset/data1.csv&quot;)
+merge_csv_files(&quot;data2&quot;, &quot;dataset/data2.csv&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="things-to-watch-out-for" class="section level2">
+<h2>Things to watch out for:</h2>
+<p>Marlins changed names Name duplicates in merging rank data</p>
+<!-- rnb-text-end -->
+</div>
+
+
 
 
 

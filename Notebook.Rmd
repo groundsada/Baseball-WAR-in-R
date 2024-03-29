@@ -30,37 +30,168 @@ selenium_object <- selenium(retcommand = T, check = F)
 
 ```{r}
 
-# Start a Selenium Server and open a browser session
-
 remote_driver <- rsDriver(browser = "chrome", chromever = "123.0.6312.86", verbose = FALSE, port = 2154L)
 remDr <- remote_driver$client
 
-# Navigate to the webpage
 remDr$navigate("https://www.baseball-reference.com/teams/ARI/2023.shtml")
 
-```
-
-```{r}
 tables <- remDr$findElements(using = "css selector", "table")
 
-# Get the third table element
 third_table_element <- tables[[3]]
 
-# Get the HTML of the third table
 table_html <- third_table_element$getElementAttribute("outerHTML")[[1]]
 
 # Convert the HTML to a data frame using rvest
 
+library(rvest)
+
 table_df <- read_html(table_html) %>% html_table() %>% .[[1]]
 
-# Print the table
 print(table_df)
+
+remDr$close()
+remote_driver$server$stop()
+
 ```
 
 
 
 ```{r}
-remDr$close() # Close the browser session
-remote_driver$server$stop() # Stop
+library(RSelenium)
+library(rvest)
+library(dplyr)
+
+teams <- c("ARI", "ATL", "BAL", "BOS", "CHC", "CHW", "CIN", "CLE", "COL", "DET", "HOU", "KCR", "LAA", "LAD", "MIA", "MIL", "MIN", "NYM", "NYY", "OAK", "PHI", "PIT", "SDP", "SEA", "SFG", "STL", "TBR", "TEX", "TOR", "WSN")
+years <- 2003:2023
+
+remote_driver <- rsDriver(browser = "chrome", chromever = "123.0.6312.86", verbose = FALSE, port = 4454L)
+remDr <- remote_driver$client
 
 ```
+
+```{r}
+remDr$setTimeout(type = "page load", milliseconds = 170000)
+
+clean_names <- function(df) {
+  names(df) <- make.names(names(df), unique = TRUE)
+  return(df)
+}
+
+
+dir.create("data1", showWarnings = FALSE)
+dir.create("data2", showWarnings = FALSE)
+
+team_mapping <- list(
+  LAA = "ANA",
+  TBR = "TBD",
+  WSN = "MON"
+)
+
+```
+
+
+```{r}
+download_data <- function(team, year) {
+  correct_team <- ifelse(team %in% names(team_mapping) && year < 2008, team_mapping[[team]], team)
+  
+  file_path1 <- paste0("data1/", team, "_", year, "_table1.csv")
+  file_path3 <- paste0("data2/", team, "_", year, "_table3.csv")
+  
+  if (!file.exists(file_path1) || !file.exists(file_path3)) {
+    url <- paste0("https://www.baseball-reference.com/teams/", correct_team, "/", year, ".shtml")
+    remDr$navigate(url)
+    
+    tables <- remDr$findElements(using = "css selector", "table")
+    
+    if (!file.exists(file_path1) && length(tables) >= 1) {
+      first_table_element <- tables[[1]]
+      first_table_html <- first_table_element$getElementAttribute("outerHTML")[[1]]
+      first_table_df <- read_html(first_table_html) %>% html_table() %>% .[[1]] %>% clean_names()
+      write.csv(first_table_df, file = file_path1, row.names = FALSE)
+    }
+    if (!file.exists(file_path3) && length(tables) >= 3) {
+      third_table_element <- tables[[3]]
+      third_table_html <- third_table_element$getElementAttribute("outerHTML")[[1]]
+      third_table_df <- read_html(third_table_html) %>% html_table() %>% .[[1]] %>% clean_names()
+      write.csv(third_table_df, file = file_path3, row.names = FALSE)
+    }
+  }
+}
+```
+
+
+```{r}
+for (team in teams) {
+  for (year in years) {
+    while (TRUE) {
+      tryCatch({
+        download_data(team, year)
+        break
+      }, error = function(e) {
+        cat("Error for", team, year, ":", e$message, "- retrying...\n")
+      })
+    }
+  }
+}
+```
+
+```{r}
+remDr$close()
+remote_driver$server$stop()
+
+```
+
+```{r}
+expected_files_data1 <- sapply(years, function(year) {
+  paste0("data1/", teams, "_", year, "_table1.csv")
+}, simplify = FALSE) %>% unlist()
+
+expected_files_data2 <- sapply(years, function(year) {
+  paste0("data2/", teams, "_", year, "_table3.csv")
+}, simplify = FALSE) %>% unlist()
+
+expected_files <- c(expected_files_data1, expected_files_data2)
+
+actual_files_data1 <- list.files("data1", full.names = TRUE)
+actual_files_data2 <- list.files("data2", full.names = TRUE)
+actual_files <- c(actual_files_data1, actual_files_data2)
+
+missing_files <- setdiff(expected_files, actual_files)
+
+if (length(missing_files) > 0) {
+  cat("Missing files:\n")
+  print(missing_files)
+} else {
+  cat("All files have been downloaded.\n")
+}
+
+```
+
+
+```{r}
+dir.create("dataset", showWarnings = FALSE)
+
+merge_csv_files <- function(input_folder, output_file) {
+  all_files <- list.files(input_folder, full.names = TRUE, pattern = "\\.csv$")
+  all_data <- lapply(all_files, function(file) {
+    data <- read.csv(file)
+    file_parts <- strsplit(basename(file), "_")[[1]]
+    data$Team <- file_parts[1]
+    data$Season <- as.numeric(file_parts[2])
+    return(data)
+  })
+  merged_data <- bind_rows(all_data) %>%
+    arrange(Team, Season, Name)  # Assuming there is a 'Name' column
+  write.csv(merged_data, file = output_file, row.names = FALSE)
+}
+```
+
+```{r}
+merge_csv_files("data1", "dataset/data1.csv")
+merge_csv_files("data2", "dataset/data2.csv")
+```
+
+## Things to watch out for:
+Marlins changed names
+Name duplicates in merging rank data
+
