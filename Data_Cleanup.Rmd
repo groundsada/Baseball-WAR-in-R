@@ -1,0 +1,54 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(readr)
+library(tidyr)
+```
+
+```{r}
+fix_ranking <- function(df) {
+  df <- df %>% 
+    mutate(Rank = as.character(Rank)) %>% 
+    fill(Rank, .direction = "down") %>%
+    mutate(Rank = as.integer(Rank))
+  return(df)
+}
+```
+
+
+
+```{r}
+read_and_fix_csv_with_year <- function(file_path) {
+  df <- read_csv(file_path, show_col_types = FALSE)
+  fixed_df <- fix_ranking(df)
+  year <- as.integer(gsub(".*_(\\d{4})\\.csv$", "\\1", basename(file_path)))
+  fixed_df$Year <- year
+  return(fixed_df)
+}
+```
+
+
+
+```{r}
+merge_csv_files_with_year <- function(dir_path, output_file) {
+  file_paths <- list.files(path = dir_path, pattern = "*.csv", full.names = TRUE)
+  merged_df <- bind_rows(lapply(file_paths, read_and_fix_csv_with_year))
+  write_csv(merged_df, output_file)
+}
+```
+
+```{r}
+merge_csv_files_with_year("top_100_each_year", "dataset/rank.csv")
+```
+
+
+**Now data is clean**
+**Not all data is alphanumeric**
+**Not all rows are players**
+
+```{r}
+```
