@@ -1,0 +1,48 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Clean up Rank
+
+```{r}
+library(dplyr)
+
+data <- read.csv("dataset/master_rank.csv", fileEncoding = "UTF-8")
+```
+
+```{r}
+head(data)
+```
+
+```{r}
+colnames(data)
+```
+
+
+
+```{r}
+# Assigning new names to the columns of the dataframe 'data'
+colnames(data) <- c("Player", "Team", "Year", "Age", "Country", "Batting Side", "Throwing Hand", 
+                    "Height", "Weight", "Date of Birth", "Years Playing", "Number of Games Played", 
+                    "Number of Games Started", "Batting", "Defense", "Games as Pitcher", 
+                    "Games as Catcher", "Games as First Baseman", "Games as Second Baseman", 
+                    "Games as Third Baseman", "Games as Shortstop", "Games as Left Fielder", 
+                    "Games as Center Fielder", "Games as Right Fielder", "Games as Outfielder", 
+                    "Designated Hitter", "Pinch Hitter", "Pinch Runner", "WAR", "Salary", 
+                    "X.1", "All Star Status")
+
+# Optionally, print the updated column names to confirm
+print(colnames(data))
+```
+
+
+
+
+
+
+
+
+
+
+
