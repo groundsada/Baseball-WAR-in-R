@@ -140,12 +140,14 @@ merged_data$Rank <- NULL
 # Print the updated merged_data to check
 print(head(merged_data))
 ```
+
 ```{r}
 # Print the total number of rows in merged_data
 total_rows <- nrow(merged_data)
 print(paste("Total number of rows in merged_data:", total_rows))
 
-rank_1_to_100 <- sum(merged_data$numeric_rank >= 1 & merged_data$numeric_rank <= 100, na.rm = TRUE)
+rank_1_to_100 <- sum(as.numeric(as.character(merged_data$top_100)) >= 1 & 
+                     as.numeric(as.character(merged_data$top_100)) <= 100, na.rm = TRUE)
 print(paste("Number of rows with rank between 1 and 100:", rank_1_to_100))
 
 # Count and print the number of rows with rank 'No'
@@ -160,7 +162,27 @@ print(paste("Number of rows with different or unexpected rank:", different_rank)
 ```
 
 
+```{r}
+# Splitting the data into two datasets
+master_rank <- merged_data[merged_data$Year >= 2008, ]
+master_no_rank <- merged_data[merged_data$Year < 2008, ]
 
+# Removing the 'top_100' column from master_no_rank
+master_no_rank$top_100 <- NULL
+
+# Writing datasets to CSV files
+write.csv(master_rank, "dataset/master_rank.csv", row.names = FALSE)
+write.csv(master_no_rank, "dataset/master_no_rank.csv", row.names = FALSE)
+
+# Reading back the first file to confirm the number of ranks
+master_rank <- read.csv("dataset/master_rank.csv")
+
+# Calculate and print the number of ranks between 1 and 100
+rank_1_to_100 <- sum(as.numeric(as.character(master_rank$top_100)) >= 1 & 
+                     as.numeric(as.character(master_rank$top_100)) <= 100, na.rm = TRUE)
+print(paste("Number of rows with rank between 1 and 100:", rank_1_to_100))
+
+```
 
 
 

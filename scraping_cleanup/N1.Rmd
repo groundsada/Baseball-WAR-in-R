@@ -296,7 +296,7 @@ nrow(full_join_result)
 
 ```{r}
 # Save the cleaned data
-write.csv(data, "dataset/merged_data.csv", row.names = FALSE)
+write.csv(full_join_result, "dataset/merged_data.csv", row.names = FALSE)
 ```
 
 
