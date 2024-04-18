@@ -1,0 +1,305 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Clean up Data 1
+
+```{r}
+library(dplyr)
+library(stringr)
+library(stringi)
+
+# Read the data
+data <- read.csv("dataset/data1.csv", stringsAsFactors = FALSE)
+nrow(data)
+```
+
+
+```{r}
+head(data)
+```
+
+
+```{r}
+data_removed <- data[is.na(data$Pos) | data$Pos == "" | data$Pos == "Pos", ]
+
+# Filter out these rows from the main dataframe
+data <- data[!is.na(data$Pos) & data$Pos != "" & data$Pos != "Pos", ]
+
+
+# Clean up player names by removing trailing asterisks
+data$Name <- gsub("\\*$", "", data$Name)
+
+# Correct specific misencoded characters manually
+data$Name <- gsub("√©", "é", data$Name)
+data$Name <- gsub("√≥", "ó", data$Name)
+data$Name <- gsub("√±", "ñ", data$Name)
+
+# Try using stringi to convert encodings if manual fixes are incomplete
+data$Name <- stri_trans_general(data$Name, "Latin-ASCII")
+
+# Save the cleaned data
+
+```
+
+```{r}
+data_removed
+```
+
+```{r}
+nrow(data)
+```
+
+```{r}
+head(data)
+```
+
+```{r}
+# check names
+print_non_alphanumeric_names <- function(data) {
+  # Check if the Name column contains non-alphanumeric or non-space characters
+  non_alphanumeric_players <- data %>% 
+    filter(!grepl("^[a-zA-Z0-9 ]+$", Name)) %>%
+    select(Name)
+  
+  # Print the results
+  if (nrow(non_alphanumeric_players) > 0) {
+    print(non_alphanumeric_players)
+  } else {
+    print("No players with non-alphanumeric or space characters in their names.")
+  }
+}
+
+print_non_alphanumeric_names(data)
+```
+
+
+```{r}
+clean_player_names <- function(data) {
+  # Remove all non-alphanumeric characters except spaces, and trailing hashes
+  data$Name <- str_replace_all(data$Name, "#$", "")
+  data$Name <- str_replace_all(data$Name, "[^a-zA-Z0-9 ]", " ")
+  return(data)
+}
+
+data <- clean_player_names(data)
+```
+
+```{r}
+print_non_alphanumeric_names(data)
+```
+
+```{r}
+# Save the cleaned data
+write.csv(data, "dataset/data1.csv", row.names = FALSE)
+```
+
+# Clean up Data 2
+
+```{r}
+data <- read.csv("dataset/data2.csv", stringsAsFactors = FALSE)
+head(data)
+```
+
+```{r}
+nrow(data)
+```
+
+```{r}
+data_removed <- data[is.na(data$Age) | data$Age == "" | data$Age == "Age", ]
+
+# Filter out these rows from the main dataframe
+data <- data[!is.na(data$Age) & data$Age != "" & data$Age != "Age", ]
+
+
+# Clean up player names by removing trailing asterisks
+data$Name <- gsub("\\*$", "", data$Name)
+
+# Correct specific misencoded characters manually
+data$Name <- gsub("√©", "é", data$Name)
+data$Name <- gsub("√≥", "ó", data$Name)
+data$Name <- gsub("√±", "ñ", data$Name)
+
+# Try using stringi to convert encodings if manual fixes are incomplete
+data$Name <- stri_trans_general(data$Name, "Latin-ASCII")
+
+# Save the cleaned data
+
+```
+
+
+```{r}
+data_removed
+```
+
+```{r}
+data
+```
+
+```{r}
+print_non_alphanumeric_names(data)
+```
+
+
+```{r}
+data <- clean_player_names(data)
+```
+
+
+```{r}
+print_non_alphanumeric_names(data)
+```
+
+```{r}
+nrow(data)
+```
+
+```{r}
+write.csv(data, "dataset/data2.csv", row.names = FALSE)
+```
+
+
+# Merge Data 1 and Data 2
+
+```{r}
+library(dplyr)
+
+# Load the datasets
+data1 <- read.csv("dataset/data1.csv", stringsAsFactors = FALSE)
+data2 <- read.csv("dataset/data2.csv", stringsAsFactors = FALSE)
+
+# Add an identifier column to each dataset
+data1 <- dplyr::mutate(data1, source = "data1")
+data2 <- dplyr::mutate(data2, source = "data2")
+
+# Perform a full join on 'Name', 'Season', and 'Team'
+full_join_result <- dplyr::full_join(data1, data2, by = c("Name", "Season", "Team"))
+
+# Find rows in data1 that don't have a match in data2
+unmatched_data1 <- full_join_result %>%
+  dplyr::filter(is.na(source.y)) %>%
+  dplyr::select(names(data1)[names(data1) %in% names(full_join_result)])  # Safely select matching columns
+
+# Find rows in data2 that don't have a match in data1
+unmatched_data2 <- full_join_result %>%
+  dplyr::filter(is.na(source.x)) %>%
+  dplyr::select(names(data2)[names(data2) %in% names(full_join_result)])  # Safely select matching columns
+
+# Print the unmatched rows
+print("Rows in Data1 that don't have a match in Data2:")
+print(unmatched_data1)
+```
+
+```{r}
+print("Rows in Data2 that don't have a match in Data1:")
+print(unmatched_data2)
+```
+
+# Let's reomve hte HOF
+
+```{r}
+# Load the datasets
+data1 <- read.csv("dataset/data1.csv", stringsAsFactors = FALSE)
+data2 <- read.csv("dataset/data2.csv", stringsAsFactors = FALSE)
+
+# Clean 'Name' column in data2 by removing trailing "HOF"
+data2$Name <- str_trim(stringr::str_replace(data2$Name, "\\s+HOF$", ""))
+
+# Add an identifier column to each dataset
+data1 <- mutate(data1, source = "data1")
+data2 <- mutate(data2, source = "data2")
+
+# Perform a full join on 'Name', 'Season', and 'Team'
+full_join_result <- full_join(data1, data2, by = c("Name", "Season", "Team"))
+
+# Find rows in data1 that don't have a match in data2
+unmatched_data1 <- full_join_result %>%
+  filter(is.na(source.y)) %>%
+  select(names(data1)[names(data1) %in% names(full_join_result)])  # Safely select matching columns
+
+# Find rows in data2 that don't have a match in data1
+unmatched_data2 <- full_join_result %>%
+  filter(is.na(source.x)) %>%
+  select(names(data2)[names(data2) %in% names(full_join_result)])  # Safely select matching columns
+```
+
+```{r}
+print("Rows in Data1 that don't have a match in Data2:")
+print(unmatched_data1)
+```
+
+```{r}
+print("Rows in Data2 that don't have a match in Data1:")
+print(unmatched_data2)
+```
+# the error is in Jr in Data 1
+
+```{r}
+# Print some sample unmatched rows with 'Jr' in their names
+print(unmatched_data1[grepl("Jr", unmatched_data1$Name), ])
+print(unmatched_data2[grepl("Jr", unmatched_data2$Name), ])
+
+```
+
+```{r}
+# Function to normalize names
+normalize_name <- function(name) {
+  name <- stringr::str_trim(name)  # Trim whitespace
+  name <- gsub("\\s+", " ", name)  # Replace multiple spaces with a single space
+  name <- tolower(name)  # Convert to lower case
+  name <- gsub("\\bjr\\.?$", "jr", name, perl = TRUE)  # Normalize "Jr" suffix
+  return(name)
+}
+
+# Apply normalization to both datasets
+data1$Name <- sapply(data1$Name, normalize_name)
+data2$Name <- sapply(data2$Name, normalize_name)
+
+# Then perform the full join and filtering as before
+full_join_result <- full_join(data1, data2, by = c("Name", "Season", "Team"))
+
+# Filter unmatched rows after normalization
+unmatched_data1 <- full_join_result %>%
+  filter(is.na(source.y)) %>%
+  select(names(data1)[names(data1) %in% names(full_join_result)])
+
+unmatched_data2 <- full_join_result %>%
+  filter(is.na(source.x)) %>%
+  select(names(data2)[names(data2) %in% names(full_join_result)])
+
+```
+
+```{r}
+print("Rows in Data1 that don't have a match in Data2:")
+print(unmatched_data1)
+```
+
+```{r}
+print("Rows in Data2 that don't have a match in Data1:")
+print(unmatched_data2)
+```
+
+
+```{r}
+head(full_join_result)
+```
+
+
+```{r}
+summary(full_join_result)
+```
+```{r}
+nrow(full_join_result)
+```
+
+
+```{r}
+# Save the cleaned data
+write.csv(data, "dataset/merged_data.csv", row.names = FALSE)
+```
+
+
+
+
+

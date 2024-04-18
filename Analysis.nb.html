@@ -1752,66 +1752,74 @@ display: none;
 
 
 <!-- rnb-text-begin -->
+<div id="clean-up-rank" class="section level1">
+<h1>Clean up Rank</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShkcGx5cilcbmxpYnJhcnkocmVhZHIpXG5saWJyYXJ5KHRpZHlyKVxuYGBgIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShkcGx5cilcblxuZGF0YSA8LSByZWFkLmNzdihcImRhdGFzZXQvbWFzdGVyX3JhbmsuY3N2XCIsIGZpbGVFbmNvZGluZyA9IFwiVVRGLThcIilcbmBgYCJ9 -->
 <pre class="r"><code>library(dplyr)
-library(readr)
-library(tidyr)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml4X3JhbmtpbmcgPC0gZnVuY3Rpb24oZGYpIHtcbiAgZGYgPC0gZGYgJT4lIFxuICAgIG11dGF0ZShSYW5rID0gYXMuY2hhcmFjdGVyKFJhbmspKSAlPiUgXG4gICAgZmlsbChSYW5rLCAuZGlyZWN0aW9uID0gXCJkb3duXCIpICU+JVxuICAgIG11dGF0ZShSYW5rID0gYXMuaW50ZWdlcihSYW5rKSlcbiAgcmV0dXJuKGRmKVxufVxuYGBgIn0= -->
-<pre class="r"><code>fix_ranking &lt;- function(df) {
-  df &lt;- df %&gt;% 
-    mutate(Rank = as.character(Rank)) %&gt;% 
-    fill(Rank, .direction = &quot;down&quot;) %&gt;%
-    mutate(Rank = as.integer(Rank))
-  return(df)
-}</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVhZF9hbmRfZml4X2Nzdl93aXRoX3llYXIgPC0gZnVuY3Rpb24oZmlsZV9wYXRoKSB7XG4gIGRmIDwtIHJlYWRfY3N2KGZpbGVfcGF0aCwgc2hvd19jb2xfdHlwZXMgPSBGQUxTRSlcbiAgZml4ZWRfZGYgPC0gZml4X3JhbmtpbmcoZGYpXG4gIHllYXIgPC0gYXMuaW50ZWdlcihnc3ViKFwiLipfKFxcXFxkezR9KVxcXFwuY3N2JFwiLCBcIlxcXFwxXCIsIGJhc2VuYW1lKGZpbGVfcGF0aCkpKVxuICBmaXhlZF9kZiRZZWFyIDwtIHllYXJcbiAgcmV0dXJuKGZpeGVkX2RmKVxufVxuYGBgIn0= -->
-<pre class="r"><code>read_and_fix_csv_with_year &lt;- function(file_path) {
-  df &lt;- read_csv(file_path, show_col_types = FALSE)
-  fixed_df &lt;- fix_ranking(df)
-  year &lt;- as.integer(gsub(&quot;.*_(\\d{4})\\.csv$&quot;, &quot;\\1&quot;, basename(file_path)))
-  fixed_df$Year &lt;- year
-  return(fixed_df)
-}</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWVyZ2VfY3N2X2ZpbGVzX3dpdGhfeWVhciA8LSBmdW5jdGlvbihkaXJfcGF0aCwgb3V0cHV0X2ZpbGUpIHtcbiAgZmlsZV9wYXRocyA8LSBsaXN0LmZpbGVzKHBhdGggPSBkaXJfcGF0aCwgcGF0dGVybiA9IFwiKi5jc3ZcIiwgZnVsbC5uYW1lcyA9IFRSVUUpXG4gIG1lcmdlZF9kZiA8LSBiaW5kX3Jvd3MobGFwcGx5KGZpbGVfcGF0aHMsIHJlYWRfYW5kX2ZpeF9jc3Zfd2l0aF95ZWFyKSlcbiAgd3JpdGVfY3N2KG1lcmdlZF9kZiwgb3V0cHV0X2ZpbGUpXG59XG5gYGAifQ== -->
-<pre class="r"><code>merge_csv_files_with_year &lt;- function(dir_path, output_file) {
-  file_paths &lt;- list.files(path = dir_path, pattern = &quot;*.csv&quot;, full.names = TRUE)
-  merged_df &lt;- bind_rows(lapply(file_paths, read_and_fix_csv_with_year))
-  write_csv(merged_df, output_file)
-}</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWVyZ2VfY3N2X2ZpbGVzX3dpdGhfeWVhcihcInRvcF8xMDBfZWFjaF95ZWFyXCIsIFwiZGF0YXNldC9yYW5rLmNzdlwiKVxuYGBgIn0= -->
-<pre class="r"><code>merge_csv_files_with_year(&quot;top_100_each_year&quot;, &quot;dataset/rank.csv&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p><strong>Now data is clean</strong> <strong>Not all data is
-alphanumeric</strong> <strong>Not all rows are players</strong></p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-chunk-end -->
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKYGBge3J9CmxpYnJhcnkoZHBseXIpCmxpYnJhcnkocmVhZHIpCmxpYnJhcnkodGlkeXIpCmBgYAoKYGBge3J9CmZpeF9yYW5raW5nIDwtIGZ1bmN0aW9uKGRmKSB7CiAgZGYgPC0gZGYgJT4lIAogICAgbXV0YXRlKFJhbmsgPSBhcy5jaGFyYWN0ZXIoUmFuaykpICU+JSAKICAgIGZpbGwoUmFuaywgLmRpcmVjdGlvbiA9ICJkb3duIikgJT4lCiAgICBtdXRhdGUoUmFuayA9IGFzLmludGVnZXIoUmFuaykpCiAgcmV0dXJuKGRmKQp9CmBgYAoKCgpgYGB7cn0KcmVhZF9hbmRfZml4X2Nzdl93aXRoX3llYXIgPC0gZnVuY3Rpb24oZmlsZV9wYXRoKSB7CiAgZGYgPC0gcmVhZF9jc3YoZmlsZV9wYXRoLCBzaG93X2NvbF90eXBlcyA9IEZBTFNFKQogIGZpeGVkX2RmIDwtIGZpeF9yYW5raW5nKGRmKQogIHllYXIgPC0gYXMuaW50ZWdlcihnc3ViKCIuKl8oXFxkezR9KVxcLmNzdiQiLCAiXFwxIiwgYmFzZW5hbWUoZmlsZV9wYXRoKSkpCiAgZml4ZWRfZGYkWWVhciA8LSB5ZWFyCiAgcmV0dXJuKGZpeGVkX2RmKQp9CmBgYAoKCgpgYGB7cn0KbWVyZ2VfY3N2X2ZpbGVzX3dpdGhfeWVhciA8LSBmdW5jdGlvbihkaXJfcGF0aCwgb3V0cHV0X2ZpbGUpIHsKICBmaWxlX3BhdGhzIDwtIGxpc3QuZmlsZXMocGF0aCA9IGRpcl9wYXRoLCBwYXR0ZXJuID0gIiouY3N2IiwgZnVsbC5uYW1lcyA9IFRSVUUpCiAgbWVyZ2VkX2RmIDwtIGJpbmRfcm93cyhsYXBwbHkoZmlsZV9wYXRocywgcmVhZF9hbmRfZml4X2Nzdl93aXRoX3llYXIpKQogIHdyaXRlX2NzdihtZXJnZWRfZGYsIG91dHB1dF9maWxlKQp9CmBgYAoKYGBge3J9Cm1lcmdlX2Nzdl9maWxlc193aXRoX3llYXIoInRvcF8xMDBfZWFjaF95ZWFyIiwgImRhdGFzZXQvcmFuay5jc3YiKQpgYGAKCgoqKk5vdyBkYXRhIGlzIGNsZWFuKioKKipOb3QgYWxsIGRhdGEgaXMgYWxwaGFudW1lcmljKioKKipOb3QgYWxsIHJvd3MgYXJlIHBsYXllcnMqKgoKYGBge3J9CmBgYA==</div>
+data &lt;- read.csv(&quot;dataset/master_rank.csv&quot;, fileEncoding = &quot;UTF-8&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChkYXRhKVxuYGBgIn0= -->
+<pre class="r"><code>head(data)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6NiwibmNvbCI6MzIsInN1bW1hcnkiOnsiRGVzY3JpcHRpb24iOlsiZGYgWzYgw5cgMzJdIl19fSwicmRmIjoiSDRzSUFBQUFBQUFBQSsxV3pXN1RRQkJlL3lXcVUwcEZEL3hkRm9URXBZM2loRGJwcWFRTmJVRWxSRW1xSmllMFRiWnB3TFVqMjRIbXhtdkFtM0RxZ1JOUGdIcUJYdWhqRk1heHg3R3RFRFVGYmwzcDAzNzd6YzdNZW5hOWRyWFV5S2tObFJBaUVWa1NpYVFBSmNwdWZYT3BRSWdzd2tBZ01wbHgrMk9ZdEFDRUF1WUJDZCtRWXZRTnBheDE2SEJyS2tuMUpKMGZELzZvekE2Vi9iNWxjTWVKSlpaMmlrV2tMNStYeDlENnM4WVlXbTQyb2JzeGpFU1NaNER2Z0IrQW40Qnp3T25JVHU0RDdnTHVBVzREN293cGdkSzM2Vzd0N3dmUnFFSjFPdkl2dlpXVngzVDU0YVVHVHlZTlJuWDhGc0lYSCtleHJMUEZmb2RtODR0VVd5MFVwdFo2RnMxcXJyWTZTVXU5WUFiTnVWSStIeTlaRG8rSVpqdW9aU2Rvb3FiRlRrclN6ZUErUGtBR1BBalp3MDMyKzdCZDhqVWhORStjSXY0MCtjUHQydjUvN1hPdWZlMHNLcDU4L2VpMlQydWZ2ZjdrMU91ZjNncW16SlBSMFNTWDdGT1B0SlhGNVV4bU1aUEpYREZFUExWWU5xL0FvaDhQeFdCSDNQWURVMTlNVkhRMkNMNEdjcDJ6SStSTnpsQ1hpaDJPN3gxZTRjSTZranFtM01hWFU5eERKcFZNbkNjMUxSdGR0bkRpRnQ2K3lYWG1PRjJqZzhNU1ArQ0dIV1N0SU5uQWFBMHRDTnpJam1nT3FWakQwT0xPSnJLTmdGVUQ5aXBncFcxa2xSSEQ2MW5hS3lKTjFKak9yRUdRTTYzaHFoMno5MXB6ZHoxUytSbkxmSi9HNnJzblZmemdiWEVpdmtVdG5kbTRSU2lxYmVhdzlJRUYvakM2aUxra3paN1ROUTF3RWhlOGlCRm53WW9KTi91R3U1TDJVdXV3Yjd4MS96QWlacWtIV3dBNWlYY0ZDdjZDQlQ4MGN1cXRRdndWTzZjSmJuUzZCdTZhb3JOOXJtUGtObi9uMHptb3g3QWM2WjdWTmZDb3FLRGFhY2QwR0xxb0xWTkhaZmprNU9JM2FZdGY1aTBKQUFBPSJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Player"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Team"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Year"],"name":[3],"type":["int"],"align":["right"]},{"label":["Age"],"name":[4],"type":["int"],"align":["right"]},{"label":["X"],"name":[5],"type":["chr"],"align":["left"]},{"label":["B"],"name":[6],"type":["chr"],"align":["left"]},{"label":["T"],"name":[7],"type":["chr"],"align":["left"]},{"label":["Ht"],"name":[8],"type":["chr"],"align":["left"]},{"label":["Wt"],"name":[9],"type":["int"],"align":["right"]},{"label":["DoB"],"name":[10],"type":["chr"],"align":["left"]},{"label":["Yrs"],"name":[11],"type":["chr"],"align":["left"]},{"label":["G"],"name":[12],"type":["int"],"align":["right"]},{"label":["GS"],"name":[13],"type":["int"],"align":["right"]},{"label":["Batting"],"name":[14],"type":["int"],"align":["right"]},{"label":["Defense"],"name":[15],"type":["int"],"align":["right"]},{"label":["P"],"name":[16],"type":["int"],"align":["right"]},{"label":["C"],"name":[17],"type":["int"],"align":["right"]},{"label":["X1B"],"name":[18],"type":["int"],"align":["right"]},{"label":["X2B"],"name":[19],"type":["int"],"align":["right"]},{"label":["X3B"],"name":[20],"type":["int"],"align":["right"]},{"label":["SS"],"name":[21],"type":["int"],"align":["right"]},{"label":["LF"],"name":[22],"type":["int"],"align":["right"]},{"label":["CF"],"name":[23],"type":["int"],"align":["right"]},{"label":["RF"],"name":[24],"type":["int"],"align":["right"]},{"label":["OF"],"name":[25],"type":["int"],"align":["right"]},{"label":["DH"],"name":[26],"type":["int"],"align":["right"]},{"label":["PH"],"name":[27],"type":["int"],"align":["right"]},{"label":["PR"],"name":[28],"type":["int"],"align":["right"]},{"label":["WAR"],"name":[29],"type":["dbl"],"align":["right"]},{"label":["Salary"],"name":[30],"type":["chr"],"align":["left"]},{"label":["X.1"],"name":[31],"type":["chr"],"align":["left"]},{"label":["top_100"],"name":[32],"type":["chr"],"align":["left"]}],"data":[{"1":"a j  achter","2":"LAA","3":"2016","4":"27","5":"us US","6":"R","7":"R","8":"6' 5\"","9":"215","10":"Aug 27, 1988","11":"3","12":"27","13":"0","14":"3","15":"27","16":"27","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0","26":"0","27":"0","28":"0","29":"0.5","30":"","31":"","32":"No","_rn_":"1"},{"1":"a j  achter","2":"MIN","3":"2014","4":"25","5":"us US","6":"R","7":"R","8":"6' 5\"","9":"215","10":"Aug 27, 1988","11":"1st","12":"7","13":"0","14":"0","15":"7","16":"7","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0","26":"0","27":"0","28":"0","29":"0.0","30":"","31":"","32":"No","_rn_":"2"},{"1":"a j  achter","2":"MIN","3":"2015","4":"26","5":"us US","6":"R","7":"R","8":"6' 5\"","9":"215","10":"Aug 27, 1988","11":"2","12":"11","13":"0","14":"1","15":"11","16":"11","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0","26":"0","27":"0","28":"0","29":"-0.2","30":"","31":"","32":"No","_rn_":"3"},{"1":"a j  alexy","2":"TEX","3":"2021","4":"23","5":"us US","6":"R","7":"R","8":"6' 4\"","9":"195","10":"Apr 21, 1998","11":"1st","12":"5","13":"4","14":"0","15":"5","16":"5","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0","26":"0","27":"0","28":"0","29":"0.1","30":"","31":"","32":"No","_rn_":"4"},{"1":"a j  alexy","2":"TEX","3":"2022","4":"24","5":"us US","6":"R","7":"R","8":"6' 4\"","9":"195","10":"Apr 21, 1998","11":"2","12":"4","13":"0","14":"0","15":"4","16":"4","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0","26":"0","27":"0","28":"0","29":"-0.4","30":"","31":"","32":"No","_rn_":"5"},{"1":"a j  burnett","2":"NYY","3":"2009","4":"32","5":"us US","6":"R","7":"R","8":"6' 4\"","9":"230","10":"Jan 3, 1977","11":"11","12":"33","13":"33","14":"2","15":"33","16":"33","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0","26":"0","27":"0","28":"0","29":"4.5","30":"$16,500,000","31":"","32":"No","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10],"total":[32]},"rows":{"min":[10],"max":[10],"total":[6]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29sbmFtZXMoZGF0YSlcbmBgYCJ9 -->
+<pre class="r"><code>colnames(data)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiIFsxXSBcIlBsYXllclwiICBcIlRlYW1cIiAgICBcIlllYXJcIiAgICBcIkFnZVwiICAgICBcIlhcIiAgICAgICBcIkJcIiAgICAgICBcIlRcIiAgICAgICBcIkh0XCIgICAgICBcIld0XCIgICAgICBcIkRvQlwiICAgICBcIllyc1wiICAgICBcIkdcIiAgICAgICBcIkdTXCIgICAgIFxuWzE0XSBcIkJhdHRpbmdcIiBcIkRlZmVuc2VcIiBcIlBcIiAgICAgICBcIkNcIiAgICAgICBcIlgxQlwiICAgICBcIlgyQlwiICAgICBcIlgzQlwiICAgICBcIlNTXCIgICAgICBcIkxGXCIgICAgICBcIkNGXCIgICAgICBcIlJGXCIgICAgICBcIk9GXCIgICAgICBcIkRIXCIgICAgIFxuWzI3XSBcIlBIXCIgICAgICBcIlBSXCIgICAgICBcIldBUlwiICAgICBcIlNhbGFyeVwiICBcIlguMVwiICAgICBcInRvcF8xMDBcIlxuIn0= -->
+<pre><code> [1] &quot;Player&quot;  &quot;Team&quot;    &quot;Year&quot;    &quot;Age&quot;     &quot;X&quot;       &quot;B&quot;       &quot;T&quot;       &quot;Ht&quot;      &quot;Wt&quot;      &quot;DoB&quot;     &quot;Yrs&quot;     &quot;G&quot;       &quot;GS&quot;     
+[14] &quot;Batting&quot; &quot;Defense&quot; &quot;P&quot;       &quot;C&quot;       &quot;X1B&quot;     &quot;X2B&quot;     &quot;X3B&quot;     &quot;SS&quot;      &quot;LF&quot;      &quot;CF&quot;      &quot;RF&quot;      &quot;OF&quot;      &quot;DH&quot;     
+[27] &quot;PH&quot;      &quot;PR&quot;      &quot;WAR&quot;     &quot;Salary&quot;  &quot;X.1&quot;     &quot;top_100&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBBc3NpZ25pbmcgbmV3IG5hbWVzIHRvIHRoZSBjb2x1bW5zIG9mIHRoZSBkYXRhZnJhbWUgJ2RhdGEnXG5jb2xuYW1lcyhkYXRhKSA8LSBjKFwiUGxheWVyXCIsIFwiVGVhbVwiLCBcIlllYXJcIiwgXCJBZ2VcIiwgXCJDb3VudHJ5XCIsIFwiQmF0dGluZyBTaWRlXCIsIFwiVGhyb3dpbmcgSGFuZFwiLCBcbiAgICAgICAgICAgICAgICAgICAgXCJIZWlnaHRcIiwgXCJXZWlnaHRcIiwgXCJEYXRlIG9mIEJpcnRoXCIsIFwiWWVhcnMgUGxheWluZ1wiLCBcIk51bWJlciBvZiBHYW1lcyBQbGF5ZWRcIiwgXG4gICAgICAgICAgICAgICAgICAgIFwiTnVtYmVyIG9mIEdhbWVzIFN0YXJ0ZWRcIiwgXCJCYXR0aW5nXCIsIFwiRGVmZW5zZVwiLCBcIkdhbWVzIGFzIFBpdGNoZXJcIiwgXG4gICAgICAgICAgICAgICAgICAgIFwiR2FtZXMgYXMgQ2F0Y2hlclwiLCBcIkdhbWVzIGFzIEZpcnN0IEJhc2VtYW5cIiwgXCJHYW1lcyBhcyBTZWNvbmQgQmFzZW1hblwiLCBcbiAgICAgICAgICAgICAgICAgICAgXCJHYW1lcyBhcyBUaGlyZCBCYXNlbWFuXCIsIFwiR2FtZXMgYXMgU2hvcnRzdG9wXCIsIFwiR2FtZXMgYXMgTGVmdCBGaWVsZGVyXCIsIFxuICAgICAgICAgICAgICAgICAgICBcIkdhbWVzIGFzIENlbnRlciBGaWVsZGVyXCIsIFwiR2FtZXMgYXMgUmlnaHQgRmllbGRlclwiLCBcIkdhbWVzIGFzIE91dGZpZWxkZXJcIiwgXG4gICAgICAgICAgICAgICAgICAgIFwiRGVzaWduYXRlZCBIaXR0ZXJcIiwgXCJQaW5jaCBIaXR0ZXJcIiwgXCJQaW5jaCBSdW5uZXJcIiwgXCJXQVJcIiwgXCJTYWxhcnlcIiwgXG4gICAgICAgICAgICAgICAgICAgIFwiWC4xXCIsIFwiQWxsIFN0YXIgU3RhdHVzXCIpXG5cbiMgT3B0aW9uYWxseSwgcHJpbnQgdGhlIHVwZGF0ZWQgY29sdW1uIG5hbWVzIHRvIGNvbmZpcm1cbnByaW50KGNvbG5hbWVzKGRhdGEpKVxuYGBgIn0= -->
+<pre class="r"><code># Assigning new names to the columns of the dataframe &#39;data&#39;
+colnames(data) &lt;- c(&quot;Player&quot;, &quot;Team&quot;, &quot;Year&quot;, &quot;Age&quot;, &quot;Country&quot;, &quot;Batting Side&quot;, &quot;Throwing Hand&quot;, 
+                    &quot;Height&quot;, &quot;Weight&quot;, &quot;Date of Birth&quot;, &quot;Years Playing&quot;, &quot;Number of Games Played&quot;, 
+                    &quot;Number of Games Started&quot;, &quot;Batting&quot;, &quot;Defense&quot;, &quot;Games as Pitcher&quot;, 
+                    &quot;Games as Catcher&quot;, &quot;Games as First Baseman&quot;, &quot;Games as Second Baseman&quot;, 
+                    &quot;Games as Third Baseman&quot;, &quot;Games as Shortstop&quot;, &quot;Games as Left Fielder&quot;, 
+                    &quot;Games as Center Fielder&quot;, &quot;Games as Right Fielder&quot;, &quot;Games as Outfielder&quot;, 
+                    &quot;Designated Hitter&quot;, &quot;Pinch Hitter&quot;, &quot;Pinch Runner&quot;, &quot;WAR&quot;, &quot;Salary&quot;, 
+                    &quot;X.1&quot;, &quot;All Star Status&quot;)
+
+# Optionally, print the updated column names to confirm
+print(colnames(data))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiIFsxXSBcIlBsYXllclwiICAgICAgICAgICAgICAgICAgXCJUZWFtXCIgICAgICAgICAgICAgICAgICAgIFwiWWVhclwiICAgICAgICAgICAgICAgICAgICBcIkFnZVwiICAgICAgICAgICAgICAgICAgICAgXCJDb3VudHJ5XCIgICAgICAgICAgICAgICAgXG4gWzZdIFwiQmF0dGluZyBTaWRlXCIgICAgICAgICAgICBcIlRocm93aW5nIEhhbmRcIiAgICAgICAgICAgXCJIZWlnaHRcIiAgICAgICAgICAgICAgICAgIFwiV2VpZ2h0XCIgICAgICAgICAgICAgICAgICBcIkRhdGUgb2YgQmlydGhcIiAgICAgICAgICBcblsxMV0gXCJZZWFycyBQbGF5aW5nXCIgICAgICAgICAgIFwiTnVtYmVyIG9mIEdhbWVzIFBsYXllZFwiICBcIk51bWJlciBvZiBHYW1lcyBTdGFydGVkXCIgXCJCYXR0aW5nXCIgICAgICAgICAgICAgICAgIFwiRGVmZW5zZVwiICAgICAgICAgICAgICAgIFxuWzE2XSBcIkdhbWVzIGFzIFBpdGNoZXJcIiAgICAgICAgXCJHYW1lcyBhcyBDYXRjaGVyXCIgICAgICAgIFwiR2FtZXMgYXMgRmlyc3QgQmFzZW1hblwiICBcIkdhbWVzIGFzIFNlY29uZCBCYXNlbWFuXCIgXCJHYW1lcyBhcyBUaGlyZCBCYXNlbWFuXCIgXG5bMjFdIFwiR2FtZXMgYXMgU2hvcnRzdG9wXCIgICAgICBcIkdhbWVzIGFzIExlZnQgRmllbGRlclwiICAgXCJHYW1lcyBhcyBDZW50ZXIgRmllbGRlclwiIFwiR2FtZXMgYXMgUmlnaHQgRmllbGRlclwiICBcIkdhbWVzIGFzIE91dGZpZWxkZXJcIiAgICBcblsyNl0gXCJEZXNpZ25hdGVkIEhpdHRlclwiICAgICAgIFwiUGluY2ggSGl0dGVyXCIgICAgICAgICAgICBcIlBpbmNoIFJ1bm5lclwiICAgICAgICAgICAgXCJXQVJcIiAgICAgICAgICAgICAgICAgICAgIFwiU2FsYXJ5XCIgICAgICAgICAgICAgICAgIFxuWzMxXSBcIlguMVwiICAgICAgICAgICAgICAgICAgICAgXCJBbGwgU3RhciBTdGF0dXNcIiAgICAgICAgXG4ifQ== -->
+<pre><code> [1] &quot;Player&quot;                  &quot;Team&quot;                    &quot;Year&quot;                    &quot;Age&quot;                     &quot;Country&quot;                
+ [6] &quot;Batting Side&quot;            &quot;Throwing Hand&quot;           &quot;Height&quot;                  &quot;Weight&quot;                  &quot;Date of Birth&quot;          
+[11] &quot;Years Playing&quot;           &quot;Number of Games Played&quot;  &quot;Number of Games Started&quot; &quot;Batting&quot;                 &quot;Defense&quot;                
+[16] &quot;Games as Pitcher&quot;        &quot;Games as Catcher&quot;        &quot;Games as First Baseman&quot;  &quot;Games as Second Baseman&quot; &quot;Games as Third Baseman&quot; 
+[21] &quot;Games as Shortstop&quot;      &quot;Games as Left Fielder&quot;   &quot;Games as Center Fielder&quot; &quot;Games as Right Fielder&quot;  &quot;Games as Outfielder&quot;    
+[26] &quot;Designated Hitter&quot;       &quot;Pinch Hitter&quot;            &quot;Pinch Runner&quot;            &quot;WAR&quot;                     &quot;Salary&quot;                 
+[31] &quot;X.1&quot;                     &quot;All Star Status&quot;        </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+</div>
+
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKIyBDbGVhbiB1cCBSYW5rCgpgYGB7cn0KbGlicmFyeShkcGx5cikKCmRhdGEgPC0gcmVhZC5jc3YoImRhdGFzZXQvbWFzdGVyX3JhbmsuY3N2IiwgZmlsZUVuY29kaW5nID0gIlVURi04IikKYGBgCgpgYGB7cn0KaGVhZChkYXRhKQpgYGAKCmBgYHtyfQpjb2xuYW1lcyhkYXRhKQpgYGAKCgoKYGBge3J9CiMgQXNzaWduaW5nIG5ldyBuYW1lcyB0byB0aGUgY29sdW1ucyBvZiB0aGUgZGF0YWZyYW1lICdkYXRhJwpjb2xuYW1lcyhkYXRhKSA8LSBjKCJQbGF5ZXIiLCAiVGVhbSIsICJZZWFyIiwgIkFnZSIsICJDb3VudHJ5IiwgIkJhdHRpbmcgU2lkZSIsICJUaHJvd2luZyBIYW5kIiwgCiAgICAgICAgICAgICAgICAgICAgIkhlaWdodCIsICJXZWlnaHQiLCAiRGF0ZSBvZiBCaXJ0aCIsICJZZWFycyBQbGF5aW5nIiwgIk51bWJlciBvZiBHYW1lcyBQbGF5ZWQiLCAKICAgICAgICAgICAgICAgICAgICAiTnVtYmVyIG9mIEdhbWVzIFN0YXJ0ZWQiLCAiQmF0dGluZyIsICJEZWZlbnNlIiwgIkdhbWVzIGFzIFBpdGNoZXIiLCAKICAgICAgICAgICAgICAgICAgICAiR2FtZXMgYXMgQ2F0Y2hlciIsICJHYW1lcyBhcyBGaXJzdCBCYXNlbWFuIiwgIkdhbWVzIGFzIFNlY29uZCBCYXNlbWFuIiwgCiAgICAgICAgICAgICAgICAgICAgIkdhbWVzIGFzIFRoaXJkIEJhc2VtYW4iLCAiR2FtZXMgYXMgU2hvcnRzdG9wIiwgIkdhbWVzIGFzIExlZnQgRmllbGRlciIsIAogICAgICAgICAgICAgICAgICAgICJHYW1lcyBhcyBDZW50ZXIgRmllbGRlciIsICJHYW1lcyBhcyBSaWdodCBGaWVsZGVyIiwgIkdhbWVzIGFzIE91dGZpZWxkZXIiLCAKICAgICAgICAgICAgICAgICAgICAiRGVzaWduYXRlZCBIaXR0ZXIiLCAiUGluY2ggSGl0dGVyIiwgIlBpbmNoIFJ1bm5lciIsICJXQVIiLCAiU2FsYXJ5IiwgCiAgICAgICAgICAgICAgICAgICAgIlguMSIsICJBbGwgU3RhciBTdGF0dXMiKQoKIyBPcHRpb25hbGx5LCBwcmludCB0aGUgdXBkYXRlZCBjb2x1bW4gbmFtZXMgdG8gY29uZmlybQpwcmludChjb2xuYW1lcyhkYXRhKSkKYGBgCgoKCgoKCgoKCgoK</div>
 
 
 
@@ -1858,7 +1866,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("Data_Cleanup.Rmd");
+  window.initializeSourceEmbed("Analysis.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>
