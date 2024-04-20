@@ -23,17 +23,372 @@ colnames(data)
 
 ```{r}
 # Assigning new names to the columns of the dataframe 'data'
-colnames(data) <- c("Player", "Team", "Year", "Age", "Country", "Batting Side", "Throwing Hand", 
-                    "Height", "Weight", "Date of Birth", "Years Playing", "Number of Games Played", 
-                    "Number of Games Started", "Batting", "Defense", "Games as Pitcher", 
+colnames(data) <- c("Player", "Team", "Year", "Player Rank", "Position", "Age (from source x)", 
+                    "Games Played (from source x)", "Plate Appearances", "At Bats", "Runs Scored", 
+                    "Hits", "Doubles (from source x)", "Triples (from source x)", "Home Runs", 
+                    "Runs Batted In", "Stolen Bases", "Caught Stealing", "Bases on Balls", "Strikeouts", 
+                    "Batting Average", "On-Base Percentage", "Slugging Percentage", "On-base Plus Slugging", 
+                    "Adjusted OPS", "Total Bases", "Grounded into Double Play", "Hit by Pitch", 
+                    "Sacrifice Hits", "Sacrifice Flies", "Intentional Walks", "Source File (from source x)", 
+                    "Age (from source y)", "Country", "Batting Side", "Throwing Hand", "Height", 
+                    "Weight", "Date of Birth", "Years Playing", "Games Played (from source y)", 
+                    "Games Started", "Batting Stats", "Defensive Stats", "Games as Pitcher", 
                     "Games as Catcher", "Games as First Baseman", "Games as Second Baseman", 
                     "Games as Third Baseman", "Games as Shortstop", "Games as Left Fielder", 
                     "Games as Center Fielder", "Games as Right Fielder", "Games as Outfielder", 
-                    "Designated Hitter", "Pinch Hitter", "Pinch Runner", "WAR", "Salary", 
-                    "X.1", "All Star Status")
+                    "Designated Hitter", "Pinch Hitter", "Pinch Runner", "Wins Above Replacement", 
+                    "Salary", "Unclear Column X.1", "Source File (from source y)", "Top 100 Status")
 
 # Optionally, print the updated column names to confirm
 print(colnames(data))
+```
+
+```{r}
+# Load necessary library
+library(dplyr)
+
+# Define pairs of columns to compare
+column_pairs <- list(
+  c("Age (from source x)", "Age (from source y)"),
+  c("G.x", "G.y"),
+  c("X2B.x", "X2B.y"),
+  c("X3B.x", "X3B.y")
+)
+
+# Function to compare and potentially drop one column
+process_columns <- function(data, pair) {
+  col1 <- pair[1]
+  col2 <- pair[2]
+  
+  # Check if all values are the same in these columns
+  if (all(data[[col1]] == data[[col2]], na.rm = TRUE)) {
+    # If same, drop the second column and rename the first one
+    new_name <- gsub(".x$", "", col1)  # Remove .x from the name
+    data[[new_name]] <- data[[col1]]  # Create new column with the appropriate name
+    data[[col1]] <- NULL  # Remove the original column
+    data[[col2]] <- NULL  # Remove the second column
+    cat(sprintf("Columns %s and %s are the same. Removed %s and renamed %s to %s.\n", col1, col2, col2, col1, new_name))
+  } else {
+    cat(sprintf("Columns %s and %s differ. No columns removed.\n", col1, col2))
+  }
+  
+  return(data)
+}
+
+# Apply the function to each pair of columns
+for (pair in column_pairs) {
+  data <- process_columns(data, pair)
+}
+
+# Print out the updated column names to confirm changes
+print(colnames(data))
+
+```
+
+```{r}
+# Function to compare and potentially rename columns
+process_columns <- function(data, col1, new_name1, col2, new_name2) {
+  # Rename the first column directly
+  data[[new_name1]] <- data[[col1]]
+  data[[col1]] <- NULL  # Remove the original column
+
+  # Rename the second column directly
+  data[[new_name2]] <- data[[col2]]
+  data[[col2]] <- NULL  # Remove the second column
+  
+  cat(sprintf("Renamed %s to %s and %s to %s.\n", col1, new_name1, col2, new_name2))
+  
+  return(data)
+}
+
+# Define column names and new names
+col1 <- "Games Played (from source x)"
+new_name1 <- "Games Played or Pitched"
+col2 <- "Games Played (from source y)"
+new_name2 <- "Games Played"
+
+# Apply the function to rename "Games Played"
+data <- process_columns(data, col1, new_name1, col2, new_name2)
+
+# Since "Doubles (from source x)" and "Triples (from source x)" do not have a corresponding '.y' pair,
+# we simply rename these columns to remove the source indication if no other source is to be compared.
+data <- rename(data, Doubles = `Doubles (from source x)`, Triples = `Triples (from source x)`)
+
+# Remove any source file columns if they still exist
+data$`Source File (from source x)` <- NULL
+data$`Source File (from source y)` <- NULL
+data$`Unclear Column X.1` <- NULL
+
+# Print out the updated column names to confirm changes
+print(colnames(data))
+
+```
+
+# Analysis:
+
+```{r}
+# Load necessary libraries
+library(tidyverse)  # For data manipulation and visualization
+library(caret)      # For machine learning
+library(corrplot)   # For visualizing correlations
+library(ggplot2)    # For creating plots
+library(randomForest)  # For random forest modeling
+
+```
+Data Cleaning and Preparation
+
+```{r}
+# Checking for missing values
+sum(is.na(data))
+
+# Visualizing missing values
+library(VIM)
+aggr_plot <- aggr(data, col=c('navyblue','yellow'), numbers=TRUE, sortVars=TRUE,
+                  labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+
+# Removing missing values or replacing them
+data <- na.omit(data)  # Remove rows with missing values
+# data <- data %>% mutate(across(everything(), ~replace(., is.na(.), median(., na.rm = TRUE))))  # Replace NA with median
+
+# Convert categorical data to factors
+data$Player <- as.factor(data$Player)
+data$Team <- as.factor(data$Team)
+data$Position <- as.factor(data$Position)
+data$Country <- as.factor(data$Country)
+data$`Batting Side` <- as.factor(data$`Batting Side`)
+data$`Throwing Hand` <- as.factor(data$`Throwing Hand`)
+data$`Top 100 Status` <- as.factor(data$`Top 100 Status`)
+```
+
+4. Data Exploration and Visualization
+
+```{r}
+# Plotting distributions of numeric data
+data %>% 
+  select_if(is.numeric) %>% 
+  gather(key="variables", value="value") %>%
+  ggplot(aes(x=value)) +
+  facet_wrap(~variables, scales='free') +
+  geom_histogram(bins=30, fill="tomato", color="black")
+
+# Box plots for Positions and Salaries
+data %>% 
+  ggplot(aes(x=Position, y=Salary)) +
+  geom_boxplot(fill="lightblue", color="black")
+```
+
+
+
+
+```{r}
+# Compute correlations among numeric variables
+correlations <- cor(data %>% select_if(is.numeric), use = "pairwise.complete.obs")  # handle missing values appropriately
+
+# Heatmap of correlations
+library(ggplot2)
+library(reshape2)
+
+# Melt the correlation matrix
+melted_corr <- melt(correlations)
+
+# Create the heatmap
+ggplot(data = melted_corr, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab", name="Pearson\nCorrelation") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title = element_blank())
+
+# Plotting correlations using corrplot
+corrplot(correlations, method="circle")
+```
+
+
+```{r}
+# Compute correlations among numeric variables
+correlations <- cor(data %>% select_if(is.numeric), use = "pairwise.complete.obs")
+
+# Convert the correlation matrix into a long format
+correlations_melted <- melt(correlations)
+
+# Convert factors to characters and remove duplicate pairs
+correlations_melted <- correlations_melted %>%
+  mutate(Var1 = as.character(Var1),
+         Var2 = as.character(Var2)) %>%
+  filter(Var1 < Var2) %>%
+  mutate(abs_value = abs(value))
+
+# Identify the top 10 pairs with the highest absolute correlation
+top_correlations <- correlations_melted %>%
+  arrange(desc(abs_value)) %>%
+  slice(1:1000)
+
+# Print the top 10 correlated pairs
+print(top_correlations)
+
+```
+
+
+
+```{r}
+# Load necessary library
+library(dplyr)
+
+correlation_values <- c(1.00, 0.99, 0.98, 0.92, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5)
+
+for (value in correlation_values) {
+  
+  # Compute the correlation matrix for numeric columns
+  correlations <- cor(data %>% select_if(is.numeric), use = "pairwise.complete.obs")
+  
+  # Find pairs with correlation >= 0.85
+  high_corr <- which(abs(correlations) >= value & correlations != 1, arr.ind = TRUE)
+  
+  # Identify columns to drop
+  columns_to_drop <- unique(colnames(correlations)[high_corr[,2]])
+  
+  # Create the trimmed dataframe by dropping these columns
+  trimmed <- data %>% select(-all_of(columns_to_drop))
+  
+  # Compare the number of columns between the original and trimmed dataframes
+  original_cols <- ncol(data)
+  trimmed_cols <- ncol(trimmed)
+  
+  # Print the number of columns in each
+  cat("# of columns for correlation",value, ":", trimmed_cols, "\n")
+
+}
+```
+
+```{r}
+# Load necessary library
+# Load necessary library
+library(dplyr)
+
+# Compute the correlation matrix for numeric columns
+correlations <- cor(data %>% select_if(is.numeric), use = "pairwise.complete.obs")
+
+# Initialize a vector to store columns to drop
+columns_to_drop <- character(0)
+
+# Initialize a vector to keep track of processed columns
+processed_columns <- character(0)
+
+# Iterate over columns
+for (col_name in colnames(correlations)) {
+  # Skip if column already marked for dropping or processed
+  if (col_name %in% columns_to_drop | col_name %in% processed_columns) {
+    next
+  }
+  
+  # Find columns highly correlated with the current column
+  correlated_cols <- colnames(correlations)[abs(correlations[col_name, ]) >= 0.86 & colnames(correlations) != col_name]
+  
+  # Mark highly correlated columns for dropping
+  columns_to_drop <- c(columns_to_drop, correlated_cols)
+  
+  # Mark current column as processed
+  processed_columns <- c(processed_columns, col_name)
+}
+
+# Create the trimmed dataframe by dropping the columns
+trimmed <- data %>% select(-all_of(columns_to_drop))
+
+# Compare the number of columns between the original and trimmed dataframes
+original_cols <- ncol(data)
+trimmed_cols <- ncol(trimmed)
+
+# Print the number of columns in each
+cat("Original dataframe columns: ", original_cols, "\n")
+cat("Trimmed dataframe columns: ", trimmed_cols, "\n")
+```
+
+```{r}
+head(trimmed)
+```
+
+```{r}
+trimmed_cor <- cor(trimmed %>% select_if(is.numeric), use = "pairwise.complete.obs")
+
+# Get the top 10 pairs of columns with the highest correlation
+top_cor_pairs <- as.data.frame(as.table(trimmed_cor))
+top_cor_pairs <- top_cor_pairs[order(-top_cor_pairs$Freq),]
+top_cor_pairs <- top_cor_pairs[top_cor_pairs$Var1 != top_cor_pairs$Var2,]
+
+# Print the top 10 pairs of correlated columns
+cat("Top 10 pairs of correlated columns and their correlation:\n")
+cat("Column 1\tColumn 2\tCorrelation\n")
+for (i in 1:min(10, nrow(top_cor_pairs))) {
+  col1 <- colnames(trimmed_cor)[as.numeric(top_cor_pairs[i, "Var1"])]
+  col2 <- colnames(trimmed_cor)[as.numeric(top_cor_pairs[i, "Var2"])]
+  cat(col1, "\t", col2, "\t", top_cor_pairs[i, "Freq"], "\n")
+}
+```
+```{r}
+colnames(trimmed)
+```
+
+# Regression and DNN
+
+First, let's prepare the data:
+
+```{r}
+# Split the data into training and testing sets
+library(dplyr)
+
+# Select only numeric columns for normalization
+numeric_cols <- sapply(train_data, is.numeric)
+train_data_numeric <- train_data[, numeric_cols]
+
+# Normalize the numeric columns
+normalize <- function(x) {
+  return((x - min(x)) / (max(x) - min(x)))
+}
+train_data_norm <- as.data.frame(lapply(train_data_numeric, normalize))
+
+# Combine normalized columns with non-numeric columns
+train_data_norm <- bind_cols(train_data[, !numeric_cols], train_data_norm)
+
+# Repeat the same steps for test data
+numeric_cols_test <- sapply(test_data, is.numeric)
+test_data_numeric <- test_data[, numeric_cols_test]
+
+test_data_norm <- as.data.frame(lapply(test_data_numeric, normalize))
+test_data_norm <- bind_cols(test_data[, !numeric_cols_test], test_data_norm)
+
+# Convert Top 100 Status to numeric
+train_labels <- as.numeric(train_data$Top.100.Status)
+test_labels <- as.numeric(test_data$Top.100.Status)
+
+
+```
+
+Now, let's create the R regression model for predicting "Top 100 Status":
+
+```{r}
+train_data_norm
+```
+
+```{r}
+# Create the linear regression model
+start_time <- Sys.time()
+lm_model <- lm(Top.100.Status ~ ., data = train_data_norm)
+end_time <- Sys.time()
+runtime_lm <- end_time - start_time
+
+# Print the summary of the model
+summary(lm_model)
+
+# Predict Top 100 Status on test data
+predictions_lm <- predict(lm_model, test_data_norm)
+
+# Calculate the mean squared error
+mse_lm <- mean((predictions_lm - test_labels)^2)
+
+# Print the mean squared error
+cat("Mean Squared Error (Linear Regression): ", mse_lm, "\n")
+cat("Runtime (Linear Regression): ", runtime_lm, "\n")
+
 ```
 
 
