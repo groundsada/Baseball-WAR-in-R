@@ -13,7 +13,6 @@ library(tidyr)
 library(caret)
 library(corrplot)
 
-# Load your data
 data <- read.csv("dataset/master_rank.csv")
 ```
 
@@ -39,10 +38,13 @@ total_NAs <- sum(is.na(data))
 print(paste("Total NA values in the dataset:", total_NAs))
 ```
 
+```{r}
+colnames(data)
+```
 
 ```{r}
-numeric_columns <- sapply(data, is.numeric)
-data[numeric_columns] <- scale(data[numeric_columns])
+#columns_to_scale <- c("Age.x", "G.x", "PA", "AB", "R", "H", "X2B.x", "X3B.x", "HR", "RBI", "SB", "CS", "BB", "SO", "BA", "OBP", "SLG", "OPS", "OPS.", "TB", "GDP", "HBP", "SF", "IBB", "Wt")
+#data[columns_to_scale] <- scale(data[columns_to_scale])
 ```
 
 
@@ -176,7 +178,6 @@ plot(pca_model, type = "l")
 ```{r}
 library(ggplot2)
 
-# Boxplot for Wins Above Replacement (WAR)
 ggplot(data, aes(y = WinsAboveReplacement)) + 
   geom_boxplot(fill = "blue", alpha = 0.5) +
   theme_minimal() +
@@ -227,20 +228,43 @@ summary(continuous_vars)
 
 
 ```{r}
-# Assuming 'team_wins', 'playoff_appearances', and 'championships' are in your dataset
-# Calculate Spearman's correlation
-correlations <- cor(data[c("WinsAboveReplacement", "team_wins", "playoff_appearances", "championships")], 
-                    method = "spearman", use = "complete.obs")
-print(correlations)
+# Load necessary libraries
+library(tidyr)
+library(dplyr)
 
-# Plot WAR vs team wins as an example
-ggplot(data, aes(x = WinsAboveReplacement, y = team_wins)) +
-  geom_point() +
-  geom_smooth(method = "lm", col = "blue") +
-  labs(title = "Scatter Plot of WAR vs Team Wins", x = "Wins Above Replacement", y = "Team Wins")
+# Load team wins data
+team_wins <- read.csv("dataset/team_wins.csv")
+
+# Transform the data from wide to long format
+team_wins_long <- pivot_longer(
+  team_wins,
+  cols = c(ARI:WSN),  # Adjust if more teams or columns
+  names_to = "Team",
+  values_to = "Wins",
+  values_drop_na = TRUE
+)
+
+# Include the Year in the long format
+team_wins_long <- team_wins_long %>% 
+  select(Year, Team, Wins)
+
+# View the transformed data
+team_wins_long
 
 ```
 
+```{r}
+colnames(data)
+```
+```{r}
+head(data)
+head(team_wins)
+```
+
+
+```{r}
+
+```
 
 
 
