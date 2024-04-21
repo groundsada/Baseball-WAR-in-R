@@ -17,6 +17,10 @@ data <- read.csv("dataset/master_rank.csv")
 ```
 
 ```{r}
+head(data)
+```
+
+```{r}
 print(length(colnames(data)))
 print(nrow(data))
 ```
@@ -48,15 +52,11 @@ colnames(data)
 ```
 
 
-```{r}
-colnames(data)
-```
-
 
 ```{r}
 # Step 4: Checking for high correlations
 cor_data <- cor(data[, sapply(data, is.numeric)], use = "complete.obs")
-high_cor_pairs <- which(cor_data > 0.86 & upper.tri(cor_data), arr.ind = TRUE)
+high_cor_pairs <- which(cor_data > 0.70 & upper.tri(cor_data), arr.ind = TRUE)
 
 # Create a table of highly correlated pairs
 if (length(high_cor_pairs) > 0) {
@@ -79,7 +79,7 @@ drop_columns <- function(data, columns_to_drop) {
   data[, !names(data) %in% columns_to_drop]
 }
 
-columns_to_drop <- c("Age.y", "Rk", "Pos", "G.x", "PA", "AB", "X2B.x", "RBI", "SB", "CS", "SLG", "source.x", "source.y", "IBB", "OPS", "BA", "OBP")
+columns_to_drop <- c("Player","Team","Year", "Age.x","CS", "OPS.", "GDP", "HBP", "SH", "SF", "source.x", "Age.y", "X", "B", "T", "Ht", "Wt", "DoB", "Yrs", "G.y","P",  "C", "X1B", "X2B.y", "X3B.y", "SS", "LF", "CF", "RF", "OF", "DH", "PH", "PR", "source.y", "X.1", 'Pos')
 
 # Drop the specified columns from the dataset
 data <- drop_columns(data, columns_to_drop)
@@ -87,23 +87,45 @@ data <- drop_columns(data, columns_to_drop)
 
 ```
 
+```{r}
+colnames(data)
+```
+
 
 ```{r}
 # Rename the columns using the `names()` function
 names(data) <- c(
-  "PlayerName", "Team", "Year", "Age", "RunsScored", "Hits", "Triples", "HomeRuns",
-  "BaseOnBalls", "Strikeouts", "AdjustedOPS", "TotalBases", "GroundedIntoDoublePlays",
-  "HitByPitch", "SacrificeHits", "SacrificeFlies", "Country", "BattingHand", "ThrowingHand",
-  "Height", "Weight", "DateOfBirth", "YearsPlayed", "GamesYear", "GamesStarted",
-  "BattingStats", "DefenseStats", "Pitching", "Catching", "FirstBase", "SecondBase",
-  "ThirdBase", "ShortStop", "LeftField", "CenterField", "RightField", "Outfield", "DesignatedHitter",
-  "PinchHitter", "PinchRunner", "WinsAboveReplacement", "Salary", "UnknownX1", "Top100Status"
+  "Rank",                # "Rk" 
+  "GamesPlayed",         # "G.x"
+  "PlateAppearances",    # "PA"
+  "AtBats",              # "AB"
+  "RunsScored",          # "R"
+  "Hits",                # "H"
+  "Doubles",             # "X2B.x"
+  "Triples",             # "X3B.x"
+  "HomeRuns",            # "HR"
+  "RunsBattedIn",        # "RBI"
+  "StolenBases",         # "SB"
+  "BaseOnBalls",         # "BB"
+  "Strikeouts",          # "SO"
+  "BattingAverage",      # "BA"
+  "OnBasePercentage",    # "OBP"
+  "SluggingPercentage",  # "SLG"
+  "OnBasePlusSlugging",  # "OPS"
+  "TotalBases",          # "TB"
+  "IntentionalWalks",    # "IBB"
+  "GamesStarted",        # "GS"
+  "BattingStats",        # "Batting" (Assumed)
+  "DefenseStats",        # "Defense" (Assumed)
+  "WinsAboveReplacement",# "WAR"
+  "Salary",              # "Salary"
+  "Top100Status"         # "top_100"
 )
 
 # Clarify or investigate what 'UnknownX1' represents
 # If 'UnknownX1' is still unidentified or not useful, consider dropping it as well
 
-columns_to_drop <- c("SacrificeHits", "SacrificeFlies", "GroundedIntoDoublePlays", "UnknownX1")  # Update based on new info
+columns_to_drop <- c()  # Update based on new info
 
 # Drop the specified columns from the dataset using previously defined function
 data <- drop_columns(data, columns_to_drop)
@@ -115,37 +137,78 @@ colnames(data)
 
 
 ```{r}
+
+# Load necessary library
+library(dplyr)
+
+# Calculate correlations
 cor_data <- cor(data[, sapply(data, is.numeric)], use = "complete.obs")
 high_cor_pairs <- which(cor_data > 0.92 & upper.tri(cor_data), arr.ind = TRUE)
 
-# Create a table of highly correlated pairs
+# Create and sort a table of highly correlated pairs
 if (length(high_cor_pairs) > 0) {
   high_cor_data <- data.frame(
     Feature1 = names(data)[high_cor_pairs[, 1]],
     Feature2 = names(data)[high_cor_pairs[, 2]],
     Correlation = cor_data[high_cor_pairs]
   )
-  print("Highly correlated pairs (above 0.92):")
-  print(high_cor_data)
+
+  # Group by Feature1 and count the number of rows for each Feature1
+  feature1_counts <- high_cor_data %>%
+    group_by(Feature1) %>%
+    summarize(Count = n(), .groups = 'drop') %>% # `n()` counts the number of rows in each group
+    arrange(desc(Count))  # Sorting by Count in descending order
+
+  print("Count of high correlations per feature (Feature1):")
+  print(feature1_counts)
 } else {
   print("No highly correlated pairs found.")
 }
+
+
 ```
 
 
 ```{r}
-columns_to_drop <- c("HomeRuns", "Triples", "Strikeouts", "HitByPitch", "Country", "BattingHand", "ThrowingHand", "Age", "Height", "BaseOnBalls")
+columns_to_drop <- c("PlateAppearances","AtBats", "GamesPlayed","RunsScored","Hits","Doubles","RunsBattedIn","TotalBases")
 data <- drop_columns(data, columns_to_drop)
 ```
 
 
 ```{r}
+cor_data <- cor(data[, sapply(data, is.numeric)], use = "complete.obs")
+high_cor_pairs <- which(cor_data > 0.92 & upper.tri(cor_data), arr.ind = TRUE)
+
+# Create and sort a table of highly correlated pairs
+if (length(high_cor_pairs) > 0) {
+  high_cor_data <- data.frame(
+    Feature1 = names(data)[high_cor_pairs[, 1]],
+    Feature2 = names(data)[high_cor_pairs[, 2]],
+    Correlation = cor_data[high_cor_pairs]
+  )
+
+  # Group by Feature1 and count the number of rows for each Feature1
+  feature1_counts <- high_cor_data %>%
+    group_by(Feature1) %>%
+    summarize(Count = n(), .groups = 'drop') %>% # `n()` counts the number of rows in each group
+    arrange(desc(Count))  # Sorting by Count in descending order
+
+  print("Count of high correlations per feature (Feature1):")
+  print(feature1_counts)
+} else {
+  print("No highly correlated pairs found.")
+}
+
+```
+
+```{r}
 colnames(data)
 ```
+
 # Heatmap
 
 ```{r}
-corrplot(cor_data, method = "color", order = "hclust", tl.cex = 0.6,
+corrplot(cor_data, method = "color", order = "hclust", tl.cex = 0.8,
          title = "Heatmap of Correlation Matrix", 
          tl.col = "black", tl.srt = 90)
 
@@ -175,16 +238,6 @@ plot(pca_model, type = "l")
 ## Descriptive Statistics:
 
 
-```{r}
-library(ggplot2)
-
-ggplot(data, aes(y = WinsAboveReplacement)) + 
-  geom_boxplot(fill = "blue", alpha = 0.5) +
-  theme_minimal() +
-  labs(title = "Boxplot of Wins Above Replacement (WAR)", y = "WAR")
-```
-
-
 
 
 ```{r}
@@ -196,15 +249,6 @@ ggplot(data, aes(x = WinsAboveReplacement)) +
 
 ```
 
-
-### For other continuous variables (example: TotalBases)
-
-```{r}
-ggplot(data, aes(x = TotalBases)) + 
-  geom_histogram(bins = 30, fill = "green", color = "black") +
-  theme_minimal() +
-  labs(title = "Histogram of Total Bases", x = "Total Bases")
-```
 
 
 ### Compute 5-Number Summaries
@@ -222,132 +266,11 @@ summary(continuous_vars)
 - **Physical and Role Diversity**: The wide range in physical stats (like Weight) and role-specific stats (like Games Started or Pitching) reflects the diversity in player roles and physical builds, emphasizing the varied nature of professional baseball.
 - **Impact Players**: The range in Wins Above Replacement highlights the presence of both underperformers and impact players within the league, showcasing the potential for significant individual contributions to team success.
 
-# Step 3: Answering Specific Questions
-
-## Correlation with Team Success
-
 
 ```{r}
-# Load necessary libraries
-library(tidyr)
-library(dplyr)
-
-# Load team wins data
-team_wins <- read.csv("dataset/team_wins.csv")
-
-# Transform the data from wide to long format
-team_wins_long <- pivot_longer(
-  team_wins,
-  cols = c(ARI:WSN),  # Adjust if more teams or columns
-  names_to = "Team",
-  values_to = "Wins",
-  values_drop_na = TRUE
-)
-
-# Include the Year in the long format
-team_wins_long <- team_wins_long %>% 
-  select(Year, Team, Wins)
-
-# View the transformed data
-team_wins_long
-
+write.csv(data, "dataset/processed_data.csv", row.names = FALSE)
 ```
 
-```{r}
-colnames(data)
-```
-```{r}
-head(data)
-head(team_wins)
-```
-
-
-```{r}
-
-```
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
-
-
-
-
-```{r}
-
-```
 
 
 
