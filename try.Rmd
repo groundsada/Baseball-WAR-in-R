@@ -39,6 +39,15 @@ total_NAs <- sum(is.na(data))
 print(paste("Total NA values in the dataset:", total_NAs))
 ```
 
+```{r}
+
+# Histogram for Wins Above Replacement (WAR)
+ggplot(data, aes(x = WinsAboveReplacement)) + 
+  geom_histogram(bins = 30, fill = "red", color = "black") +
+  theme_minimal() +
+  labs(title = "Histogram of Wins Above Replacement (WAR)", x = "WAR")
+
+```
 
 ```{r}
 numeric_columns <- sapply(data, is.numeric)
