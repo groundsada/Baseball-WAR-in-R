@@ -172,9 +172,9 @@ data %>%
   geom_histogram(bins=30, fill="tomato", color="black")
 
 # Box plots for Positions and Salaries
-data %>% 
-  ggplot(aes(x=Position, y=Salary)) +
-  geom_boxplot(fill="lightblue", color="black")
+#data %>% 
+#  ggplot(aes(x=Position, y=Salary)) +
+#  geom_boxplot(fill="lightblue", color="black")
 ```
 
 
@@ -327,71 +327,6 @@ for (i in 1:min(10, nrow(top_cor_pairs))) {
 ```{r}
 colnames(trimmed)
 ```
-
-# Regression and DNN
-
-First, let's prepare the data:
-
-```{r}
-# Split the data into training and testing sets
-library(dplyr)
-
-# Select only numeric columns for normalization
-numeric_cols <- sapply(train_data, is.numeric)
-train_data_numeric <- train_data[, numeric_cols]
-
-# Normalize the numeric columns
-normalize <- function(x) {
-  return((x - min(x)) / (max(x) - min(x)))
-}
-train_data_norm <- as.data.frame(lapply(train_data_numeric, normalize))
-
-# Combine normalized columns with non-numeric columns
-train_data_norm <- bind_cols(train_data[, !numeric_cols], train_data_norm)
-
-# Repeat the same steps for test data
-numeric_cols_test <- sapply(test_data, is.numeric)
-test_data_numeric <- test_data[, numeric_cols_test]
-
-test_data_norm <- as.data.frame(lapply(test_data_numeric, normalize))
-test_data_norm <- bind_cols(test_data[, !numeric_cols_test], test_data_norm)
-
-# Convert Top 100 Status to numeric
-train_labels <- as.numeric(train_data$Top.100.Status)
-test_labels <- as.numeric(test_data$Top.100.Status)
-
-
-```
-
-Now, let's create the R regression model for predicting "Top 100 Status":
-
-```{r}
-train_data_norm
-```
-
-```{r}
-# Create the linear regression model
-start_time <- Sys.time()
-lm_model <- lm(Top.100.Status ~ ., data = train_data_norm)
-end_time <- Sys.time()
-runtime_lm <- end_time - start_time
-
-# Print the summary of the model
-summary(lm_model)
-
-# Predict Top 100 Status on test data
-predictions_lm <- predict(lm_model, test_data_norm)
-
-# Calculate the mean squared error
-mse_lm <- mean((predictions_lm - test_labels)^2)
-
-# Print the mean squared error
-cat("Mean Squared Error (Linear Regression): ", mse_lm, "\n")
-cat("Runtime (Linear Regression): ", runtime_lm, "\n")
-
-```
-
-
 
 
 
