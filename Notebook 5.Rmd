@@ -1,0 +1,212 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+# Predict a Player's All-Start Rank From Traditional Statistics
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(caret)
+library(corrplot)
+
+data <- read.csv("dataset/processed_data.csv")
+data <- data %>% select(-WinsAboveReplacement)
+```
+
+```{r}
+colnames(data)
+```
+
+
+```{r}
+print(head(data$Top100Status))
+data$Top100Status <- ifelse(data$Top100Status == "No", 0, 1)
+print(head(data$Top100Status))
+```
+
+## Step 1: Logistic Regression
+
+```{r}
+set.seed(123)
+index <- createDataPartition(data$Top100Status, p = 0.8, list = FALSE)
+train_data <- data[index,]
+test_data <- data[-index,]
+```
+
+
+```{r}
+# Fit logistic regression model
+logit_model <- glm(Top100Status ~ ., data = train_data, family = binomial())
+
+# Predictions
+predictions <- predict(logit_model, test_data, type = "response")
+predicted_class <- ifelse(predictions > 0.5, 1, 0)
+
+# Model evaluation
+confusionMatrix(factor(predicted_class), factor(test_data$Top100Status), positive = "1") 
+```
+
+The model's specificity of 99.25% indicates a high accuracy in correctly identifying players who do not achieve all-star status, reflecting effective discrimination against false positives. However, its sensitivity of 33.83% suggests it is considerably less effective at correctly identifying actual all-stars, as it misses about two-thirds of these cases, highlighting a need for improvement in detecting true positives within the dataset.
+
+## Step 2: L1/L2 Regularization (Logistic Regression with Ridge and Lasso)
+
+```{r}
+library(glmnet)
+x <- model.matrix(Top100Status ~ . - 1, data = train_data)  # -1 to exclude intercept
+y <- train_data$Top100Status
+
+lasso_model <- glmnet(x, y, family = "binomial", alpha = 1)
+ridge_model <- glmnet(x, y, family = "binomial", alpha = 0)
+
+cv_lasso <- cv.glmnet(x, y, family = "binomial", type.measure = "class", alpha = 1)
+cv_ridge <- cv.glmnet(x, y, family = "binomial", type.measure = "class", alpha = 0)
+
+plot(cv_lasso)
+plot(cv_ridge)
+
+```
+
+
+
+```{r}
+library(caret)
+
+# Predict using the optimal lambda from cross-validation
+lasso_pred_prob <- predict(cv_lasso, newx = model.matrix(Top100Status ~ . - 1, data = test_data), s = "lambda.min", type = "response")
+ridge_pred_prob <- predict(cv_ridge, newx = model.matrix(Top100Status ~ . - 1, data = test_data), s = "lambda.min", type = "response")
+
+# Convert probabilities to class predictions based on a threshold (default is 0.5)
+lasso_pred_class <- ifelse(lasso_pred_prob > 0.5, 1, 0)
+ridge_pred_class <- ifelse(ridge_pred_prob > 0.5, 1, 0)
+# Confusion matrix for the Lasso model
+lasso_conf_matrix <- confusionMatrix(factor(lasso_pred_class), factor(test_data$Top100Status))
+print("Confusion Matrix for Lasso Model:")
+print(lasso_conf_matrix)
+
+# Confusion matrix for the Ridge model
+ridge_conf_matrix <- confusionMatrix(factor(ridge_pred_class), factor(test_data$Top100Status))
+print("Confusion Matrix for Ridge Model:")
+print(ridge_conf_matrix)
+
+```
+Despite various modeling attempts, including logistic regression and regularization techniques, there has been no significant improvement in the specificity of predicting whether a player has a top rank based on statistics that exclude WAR, indicating that the current models are ineffective at accurately identifying players with top rankings from the available data.
+
+## Step 3: Decision Tree
+
+
+```{r}
+library(rpart)
+
+# Fit decision tree model
+tree_model <- rpart(Top100Status ~ ., data = train_data, method = "class")
+
+# Predictions and evaluation
+tree_predictions <- predict(tree_model, test_data, type = "class")
+confusionMatrix(tree_predictions, factor(test_data$Top100Status))
+```
+
+The specificity, is still relatively low at 40.42%, which shows an improvement compared to the logistic regression model. This suggests that the decision tree is better at balancing the identification of true negatives and positives.
+
+## Step 5: Random Forest without WAR
+
+
+```{r}
+library(randomForest)
+# Fit random forest model
+rf_model <- randomForest(Top100Status ~ ., data = train_data)
+
+# Predictions and evaluation
+rf_predictions <- predict(rf_model, test_data)
+
+```
+
+```{r}
+binary_predictions <- as.factor(ifelse(rf_predictions > 0.5, 1, 0))
+test_data$Top100Status <- factor(test_data$Top100Status, levels = c("0", "1"))
+library(caret)
+conf_matrix <- confusionMatrix(binary_predictions, test_data$Top100Status)
+print(conf_matrix)
+
+```
+
+## Step 6: SVM without WAR
+
+```{r}
+library(e1071)
+
+# Fit SVM model
+svm_model <- svm(Top100Status ~ ., data = train_data, type = "C-classification", kernel = "radial")
+
+# Predictions and evaluation
+svm_predictions <- predict(svm_model, test_data)
+confusionMatrix(svm_predictions, factor(test_data$Top100Status))
+
+```
+
+## Step 7: Naive Bayes Classifier
+
+```{r}
+library(e1071)
+
+# Fit Naive Bayes model
+nb_model <- naiveBayes(Top100Status ~ ., data = train_data)
+
+# Predictions
+nb_predictions <- predict(nb_model, test_data)
+
+# Model evaluation
+nb_conf_mat <- confusionMatrix(nb_predictions, test_data$Top100Status)
+print(nb_conf_mat)
+
+```
+
+## Step 8: Gradient Boosting Machine (GBM)
+
+```{r}
+library(gbm)
+
+# Fit GBM model
+gbm_model <- gbm(Top100Status ~ ., data = train_data, distribution = "bernoulli", n.trees = 100, interaction.depth = 3, shrinkage = 0.1)
+
+# Predictions
+gbm_predictions <- predict(gbm_model, test_data, n.trees = 100, type = "response")
+gbm_pred_class <- ifelse(gbm_predictions > 0.5, 1, 0)
+
+# Model evaluation
+gbm_conf_mat <- confusionMatrix(factor(gbm_pred_class), factor(test_data$Top100Status))
+print(gbm_conf_mat)
+
+```
+
+
+## Step 9: Feedforward Neural Network
+
+```{r}
+library(nnet)
+library(caret)  # Ensure caret is loaded for confusionMatrix
+
+# Fit Neural Network model with trace set to FALSE to reduce verbosity
+nn_model <- nnet(Top100Status ~ ., data = train_data, size = 5, linout = TRUE, decay = 5e-4, maxit = 50000, trace = FALSE)
+
+# Predictions
+nn_predictions <- predict(nn_model, test_data, type = "raw")
+nn_pred_class <- ifelse(nn_predictions > 0.5, 1, 0)
+
+# Model evaluation
+nn_conf_mat <- confusionMatrix(factor(nn_pred_class), factor(test_data$Top100Status))
+print(nn_conf_mat)
+
+
+```
+
+
+
+```{r}
+
+```
+
+

@@ -79,7 +79,7 @@ drop_columns <- function(data, columns_to_drop) {
   data[, !names(data) %in% columns_to_drop]
 }
 
-columns_to_drop <- c("Player","Team","Year", "Age.x","CS", "OPS.", "GDP", "HBP", "SH", "SF", "source.x", "Age.y", "X", "B", "T", "Ht", "Wt", "DoB", "Yrs", "G.y","P",  "C", "X1B", "X2B.y", "X3B.y", "SS", "LF", "CF", "RF", "OF", "DH", "PH", "PR", "source.y", "X.1", 'Pos')
+columns_to_drop <- c("Player","Team","Year", "Age.x","CS", "OPS.", "GDP", "HBP", "SH", "SF", "source.x", "Age.y", "X", "B", "T", "Ht", "Wt", "DoB", "Yrs", "G.y","P",  "C", "X1B", "X2B.y", "X3B.y", "SS", "LF", "CF", "RF", "OF", "DH", "PH", "PR", "source.y", "X.1", "Pos","Salary")
 
 # Drop the specified columns from the dataset
 data <- drop_columns(data, columns_to_drop)
@@ -118,7 +118,6 @@ names(data) <- c(
   "BattingStats",        # "Batting" (Assumed)
   "DefenseStats",        # "Defense" (Assumed)
   "WinsAboveReplacement",# "WAR"
-  "Salary",              # "Salary"
   "Top100Status"         # "top_100"
 )
 
