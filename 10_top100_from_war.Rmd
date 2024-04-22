@@ -1,0 +1,158 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Predict a Player's All-Star Rank From WAR
+
+This notebook utilizes various machine learning models to predict a player's all-star rank based solely on their Wins Above Replacement (WAR) metric.
+
+## Library Setup and Data Loading
+
+Load all necessary libraries and set a random seed for reproducibility. Then, load the data.
+
+
+```{r}
+library(dplyr)
+library(caret)
+library(corrplot)
+library(e1071)
+library(randomForest)
+library(nnet)
+library(gbm)
+
+data <- read.csv("dataset/processed_data.csv")
+data$Top100Status <- ifelse(data$Top100Status == "No", 0, 1)
+data <- data %>% select(WinsAboveReplacement, Top100Status)
+```
+
+```{r}
+colnames(data)
+```
+
+## Step 1: Logistic Regression
+
+Prepare the data for logistic regression, fitting the model using WAR, and evaluate it.
+
+```{r}
+set.seed(123)
+index <- createDataPartition(data$Top100Status, p = 0.8, list = FALSE)
+train_data <- data[index,]
+test_data <- data[-index,]
+```
+
+
+```{r}
+# Fit logistic regression model using only WAR
+logit_model <- glm(Top100Status ~ WinsAboveReplacement, data = train_data, family = binomial())
+
+# Predictions and evaluation
+predictions <- predict(logit_model, test_data, type = "response")
+predicted_class <- ifelse(predictions > 0.5, 1, 0)
+confusionMatrix(factor(predicted_class), factor(test_data$Top100Status))
+```
+
+## Step 2: L1/L2 Regularization (Logistic Regression with Ridge and Lasso)
+
+Regularization methods such as L1 (Lasso) and L2 (Ridge) require multiple features to be effective, hence are not applicable with only one feature like WAR.
+
+## Step 3: Decision Tree
+
+Implement a decision tree to classify players based on WAR and evaluate its accuracy.
+
+
+```{r}
+# Fit decision tree model
+tree_model <- rpart(Top100Status ~ WinsAboveReplacement, data = train_data, method = "class")
+# Predictions and evaluation
+tree_predictions <- predict(tree_model, test_data, type = "class")
+confusionMatrix(tree_predictions, factor(test_data$Top100Status))
+
+```
+
+
+## Step 5: Random Forest without other features
+
+Using Random Forest with only one feature like WAR will not improve results because all trees in the forest will make decisions based on the same single criterion, leading to identical or very similar trees without the benefit of diverse decision paths that Random Forest typically capitalizes on.
+
+## Step 6: SVM without WAR
+
+Fit a Support Vector Machine (SVM) and evaluate its performance.
+
+
+```{r}
+# Fit SVM model
+svm_model <- svm(Top100Status ~ WinsAboveReplacement, data = train_data, type = "C-classification", kernel = "radial")
+# Predictions and evaluation
+svm_predictions <- predict(svm_model, test_data)
+confusionMatrix(svm_predictions, factor(test_data$Top100Status))
+```
+
+## Step 7: Naive Bayes Classifier
+
+Train a Naive Bayes classifier and assess its accuracy.
+
+```{r}
+# Fit Naive Bayes model
+nb_model <- naiveBayes(Top100Status ~ WinsAboveReplacement, data = train_data)
+# Predictions
+nb_predictions <- predict(nb_model, test_data)
+# Model evaluation
+confusionMatrix(nb_predictions, factor(test_data$Top100Status))
+```
+
+## Step 8: Gradient Boosting Machine (GBM)
+
+Apply Gradient Boosting Machine model to predict Top100Status from WAR.
+
+```{r}
+# Fit GBM model
+gbm_model <- gbm(Top100Status ~ WinsAboveReplacement, data = train_data, distribution = "bernoulli", n.trees = 100, interaction.depth = 3, shrinkage = 0.1)
+# Predictions
+gbm_predictions <- predict(gbm_model, test_data, n.trees = 100, type = "response")
+gbm_pred_class <- ifelse(gbm_predictions > 0.5, 1, 0)
+# Model evaluation
+confusionMatrix(factor(gbm_pred_class), factor(test_data$Top100Status))
+
+```
+
+
+## Step 9: Feedforward Neural Network
+
+Explore the performance of a feedforward neural network on the same prediction task.
+
+```{r}
+library(nnet)
+library(caret)  # Ensure caret is loaded for confusionMatrix
+
+# Fit Neural Network model with trace set to FALSE to reduce verbosity
+nn_model <- nnet(Top100Status ~ WinsAboveReplacement, data = train_data, size = 5, linout = TRUE, decay = 5e-4, maxit = 5000, trace = FALSE)
+
+# Predictions: Convert raw outputs to probability using the logistic function
+nn_predictions <- predict(nn_model, test_data, type = "raw")
+nn_pred_prob <- 1 / (1 + exp(-nn_predictions))  # Logistic transformation to probabilities
+nn_pred_class <- ifelse(nn_pred_prob > 0.5, 1, 0)  # Convert probabilities to binary class
+
+# Ensure both predicted and actual classes are factors with the same levels
+nn_pred_class <- factor(nn_pred_class, levels = c(0, 1))
+test_data$Top100Status <- factor(test_data$Top100Status, levels = c(0, 1))
+
+# Model evaluation using confusion matrix
+nn_conf_mat <- confusionMatrix(nn_pred_class, test_data$Top100Status)
+print(nn_conf_mat)
+
+```
+
+This model demonstrates a very poor performance primarily due to its extremely low accuracy of 8.12% and a sensitivity of only 1.16%, indicating it fails to correctly identify the majority of true positive cases (players who do have an all-star rank). Additionally, the high number of false negatives suggests the model is heavily biased towards predicting the negative class, making it ineffective at its primary task of distinguishing players likely to have an all-star rank.
+
+
+The analysis conducted suggests a compelling conclusion: Wins Above Replacement (WAR), as a solitary metric, serves as a more effective predictor of a player's potential to achieve all-star status than the combination of all traditional baseball statistics. This insight highlights the robustness of WAR in encapsulating the overall contributions of a player, surpassing conventional statistics in predictive accuracy for all-star selections.
+
+
+
+
+
+
+

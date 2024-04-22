@@ -1,0 +1,185 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Introduction
+
+This notebook focuses on cleaning and merging baseball player ranking data with additional player data to create a comprehensive dataset. The data is then further analyzed to extract insights related to player rankings.
+
+# Setup Libraries
+
+Load the necessary libraries for data manipulation.
+
+
+```{r}
+library(dplyr)
+
+merged_data <- read.csv("dataset/merged_data.csv", fileEncoding = "UTF-8")
+rank_data <- read.csv("dataset/rank.csv", fileEncoding = "UTF-8")
+```
+
+```{r}
+head(merged_data)
+```
+
+# Data Cleaning and Preparation
+
+## Clean Player Names and Teams
+
+```{r}
+merged_data$Name <- tolower(merged_data$Name)
+merged_data$Name <- gsub("[^a-z ]", " ", merged_data$Name)
+merged_data$Name <- gsub("hof\\s*$", "", merged_data$Name)
+merged_data$Name <- gsub("^\\s+|\\s+$", "", merged_data$Name)
+
+rank_data$Player <- tolower(rank_data$Player)
+rank_data$Player <- gsub("[^a-z ]", " ", rank_data$Player)
+rank_data$Player <- gsub("\\s+$", "", rank_data$Player)
+rank_data$Player <- gsub("^\\s+", "", rank_data$Player)
+
+rank_data$Team[rank_data$Team == "LA"] <- "LAD"
+rank_data$Team[rank_data$Team == "SF"] <- "SFG"
+rank_data$Team[rank_data$Team == "SD"] <- "SDP"
+rank_data$Team[rank_data$Team == "KC"] <- "KCR"
+rank_data$Team[rank_data$Team == "CWS"] <- "CHW"
+rank_data$Team[rank_data$Team == "TB"] <- "TBR"
+rank_data$Team[rank_data$Team == "NY"] <- "NYY"
+rank_data$Team[rank_data$Team == "CHI"] <- "CHC"
+rank_data$Team[rank_data$Team == "FLA"] <- "MIA"
+rank_data$Team[rank_data$Team == "WSH"] <- "WAS"
+```
+
+
+```{r}
+standard_teams <- c("ARI", "ATL", "BAL", "BOS", "CHC", "CIN", "CLE", "COL", "CWS", "DET", "HOU", "KC", "LAA", "LAD", "MIA", "MIL", "MIN", "NYM", "NYY", "OAK", "PHI", "PIT", "SD", "SEA", "SF", "STL", "TB", "TEX", "TOR", "WAS")
+
+unique_teams <- unique(rank_data$Team)
+
+unique_teams[!unique_teams %in% standard_teams]
+```
+
+```{r}
+colnames(merged_data)[colnames(merged_data) == "Name"] <- "Player"
+colnames(merged_data)[colnames(merged_data) == "Season"] <- "Year"
+colnames(merged_data)[colnames(merged_data) == "Team"] <- "Team"
+```
+
+# Data Merging
+
+## Join Data
+
+Perform a left join on player, team, and year to combine ranking with player data.
+
+```{r}
+check_match <- left_join(rank_data, merged_data, by = c("Player", "Team", "Year"))
+```
+
+```{r}
+unmatched_rows <- check_match[is.na(check_match$Age), ]
+print(unmatched_rows)
+```
+
+## Resolve Unmatched Rows
+
+There are 81 rows in the ranked data that have no match in merged_data, for those we have to investigate one, by one.
+
+
+```{r}
+# fixes:
+rank_data$Team[rank_data$Team == "WSH"] <- "WSN"
+rank_data$Team[rank_data$Team == "WAS"] <- "WSN"
+rank_data$Player <- gsub("carlos ivan beltran", "carlos beltran", rank_data$Player)
+rank_data$Player <- gsub("adam a lind", "adam lind", rank_data$Player)
+rank_data$Player <- gsub("carl demonte crawford", "carl crawford", rank_data$Player)
+rank_data$Player <- gsub("hong chih kuo", "hung chih kuo", rank_data$Player)
+rank_data$Player <- gsub("mike anthony napoli", "mike napoli", rank_data$Player)
+rank_data$Player <- gsub("michael morse", "mike morse", rank_data$Player)
+rank_data$Player <- gsub("henderson alvarez", "henderson alvarez iii", rank_data$Player)
+rank_data[rank_data$Player == "johnny damon" & rank_data$Year == 2009, "Team"] <- "NYY"
+
+# Change team to 'STL' for Joel Pineiro in 2009
+rank_data[rank_data$Player == "joel pineiro" & rank_data$Year == 2009, "Team"] <- "STL"
+
+# Change team to 'LAD' for Randy Wolf in 2009
+rank_data[rank_data$Player == "randy wolf" & rank_data$Year == 2009, "Team"] <- "LAD"
+
+# Change team to 'HOU' for Miguel Tejada in 2009
+rank_data[rank_data$Player == "miguel tejada" & rank_data$Year == 2009, "Team"] <- "HOU"
+
+# Change team to 'TOR' for Marco Scutaro in 2009
+rank_data[rank_data$Player == "marco scutaro" & rank_data$Year == 2009, "Team"] <- "TOR"
+
+# Change team to 'DET' for Edwin Jackson in 2009
+rank_data[rank_data$Player == "edwin jackson" & rank_data$Year == 2009, "Team"] <- "DET"
+
+# Change team to 'DET' for Curtis Granderson in 2009
+rank_data[rank_data$Player == "curtis granderson" & rank_data$Year == 2009, "Team"] <- "DET"
+
+# Change team to 'DET' for Fernando Rodney in 2009
+rank_data[rank_data$Player == "fernando rodney" & rank_data$Year == 2009, "Team"] <- "DET"
+```
+
+```{r}
+check_match <- left_join(rank_data, merged_data, by = c("Player", "Team", "Year"))
+unmatched_rows <- check_match[is.na(check_match$Age), ]
+print(unmatched_rows)
+```
+
+# Final Merging and Analysis
+
+## Merge and Analyze Rankings
+
+Merge the ranking information back into the player data, categorizing players into top 100, others, or unranked.
+
+```{r}
+merged_data <- merge(merged_data, rank_data[, c("Player", "Team", "Year", "Rank")], 
+                     by = c("Player", "Team", "Year"), all.x = TRUE)
+merged_data$top_100 <- ifelse(is.na(merged_data$Rank), "No", merged_data$Rank)
+merged_data$Rank <- NULL
+print(head(merged_data))
+```
+
+```{r}
+total_rows <- nrow(merged_data)
+print(paste("Total number of rows in merged_data:", total_rows))
+
+rank_1_to_100 <- sum(as.numeric(as.character(merged_data$top_100)) >= 1 & 
+                     as.numeric(as.character(merged_data$top_100)) <= 100, na.rm = TRUE)
+print(paste("Number of rows with rank between 1 and 100:", rank_1_to_100))
+
+rank_no <- sum(merged_data$top_100 == "No", na.rm = TRUE)
+print(paste("Number of rows with rank 'No':", rank_no))
+
+
+different_rank <- sum(!merged_data$top_100 %in% c(1:100, "No"), na.rm = TRUE)
+print(paste("Number of rows with different or unexpected rank:", different_rank))
+
+```
+
+## Export Cleaned and Analyzed Data
+
+Split the data based on the year and export to separate files for ranks and no ranks.
+
+```{r}
+master_rank <- merged_data[merged_data$Year >= 2008, ]
+master_no_rank <- merged_data[merged_data$Year < 2008, ]
+master_no_rank$top_100 <- NULL
+write.csv(master_rank, "dataset/master_rank.csv", row.names = FALSE)
+write.csv(master_no_rank, "dataset/master_no_rank.csv", row.names = FALSE)
+master_rank <- read.csv("dataset/master_rank.csv")
+rank_1_to_100 <- sum(as.numeric(as.character(master_rank$top_100)) >= 1 & 
+                     as.numeric(as.character(master_rank$top_100)) <= 100, na.rm = TRUE)
+print(paste("Number of rows with rank between 1 and 100:", rank_1_to_100))
+
+```
+
+
+
+
+
+
+
+
+
+

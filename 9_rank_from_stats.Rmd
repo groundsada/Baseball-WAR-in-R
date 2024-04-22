@@ -1,0 +1,169 @@
+---
+title: 'Notebook3'
+author: 'Alek Popovic, Firas Sada'
+date: '2024-04-21'
+output: html_document
+---
+
+# Predicting Top 100 Status from Player Stats
+
+This notebook demonstrates various statistical methods to predict whether a player's other performance statistics qualify them for a Top 100 status, excluding the Wins Above Replacement (WAR) metric.
+
+## Setup Libraries and Seed
+
+Load necessary libraries for data manipulation and predictive modeling. Set a random seed for reproducibility.
+
+
+```{r}
+
+library(caret)
+library(glmnet)
+library(rpart)
+library(randomForest)
+
+set.seed(1122) # For reproducibility
+
+```
+
+## Data Loading and Initial Processing
+
+Load the dataset and display the first few rows to understand the initial data structure.
+
+```{r}
+
+df = read.csv('dataset/processed_data.csv')
+head(df)
+
+```
+
+## Data Preparation
+
+Refine the dataset by removing the Wins Above Replacement column and rows where Top100Status is 'No'. Convert Top100Status to an integer for modeling purposes.
+
+
+```{r}
+
+# Remove the 'WinsAboveReplacement' column
+df <- df[, !colnames(df) %in% 'WinsAboveReplacement']
+
+# Remove rows where Top100Status is 'No'
+df <- df[df$Top100Status != 'No', ]
+
+# Convert the Top100Status column to integer
+df$Top100Status <- as.integer(df$Top100Status)
+
+# Shuffle the rows of 'df'
+df <- df[sample(nrow(df)), ]
+
+head(df)
+
+```
+
+## Train-Test Split
+
+Create an 80-20 split of the data into training and testing sets to evaluate the performance of the models.
+
+```{r}
+
+# Create an 80-20 train-test split
+index <- createDataPartition(df$Top100Status, p=0.8, list=FALSE)
+df_train <- df[index, ]
+df_test <- df[-index, ]
+
+```
+
+## Model Training and Evaluation Function
+
+Define a function to fit models using Linear, Ridge, or Lasso Regression and calculate Mean Absolute Error (MAE) for performance evaluation.
+
+
+```{r}
+
+fit_and_evaluate <- function(model_formula, df_train, df_test, alpha_value = NULL) {
+  
+  if (is.null(alpha_value)) {
+    # Fit Linear Regression
+    model <- lm(model_formula, data = df_train)
+    predictions <- predict(model, newdata = df_test)
+  } else {
+    # Fit Ridge or Lasso Regression
+    model_matrix <- model.matrix(Top100Status ~ ., data = df_train)
+    y <- df_train$Top100Status
+    model <- glmnet(model_matrix, y, alpha = alpha_value)
+    
+    # Find the lambda that minimizes the cross-validation error
+    cv_model <- cv.glmnet(model_matrix, y, alpha = alpha_value)
+    lambda_optimal <- cv_model$lambda.min
+    
+    # Predict on test set
+    test_matrix <- model.matrix(Top100Status ~ ., data = df_test)
+    predictions <- predict(model, newx = test_matrix, s = lambda_optimal)
+  }
+  
+  # Adjust prediction output for glmnet
+  if (!is.null(alpha_value)) {
+    predictions <- as.vector(predictions) # Convert matrix to vector if glmnet
+  }
+  
+  # Calculate and return Mean Absolute Error
+  mae <- mean(abs(predictions - df_test$Top100Status))
+  return(mae)
+  
+}
+
+```
+
+## Evaluate Model Performance
+
+Evaluate and display the Mean Absolute Error (MAE) for different regression models.
+
+```{r}
+
+# Linear Regression
+linear_mae <- fit_and_evaluate(Top100Status ~ ., df_train, df_test)
+cat('Linear Regression MAE:', linear_mae, '\n')
+
+# Ridge Regression (alpha = 0 for ridge)
+ridge_mae <- fit_and_evaluate(Top100Status ~ ., df_train, df_test, alpha_value = 0)
+cat('Ridge Regression MAE:', ridge_mae, '\n')
+
+# Lasso Regression (alpha = 1 for lasso)
+lasso_mae <- fit_and_evaluate(Top100Status ~ ., df_train, df_test, alpha_value = 1)
+cat('Lasso Regression MAE:', lasso_mae, '\n')
+
+```
+
+## Decision Tree Model
+
+Train and evaluate a decision tree model to predict Top100Status.
+
+
+```{r}
+
+tree <- rpart(Top100Status ~ ., data = df_train, method='anova')
+
+# Predict on the test set
+predictions <- predict(tree, newdata=df_test)
+
+# Calculate the Mean Absolute Error (MAE)
+mae <- mean(abs(predictions - df_test$Top100Status))
+cat('Decision Tree Regression MAE:', mae, '\n')
+
+```
+
+## Random Forest Model
+
+Implement and assess a Random Forest model using a small number of trees.
+
+```{r}
+
+forest <- randomForest(Top100Status ~ ., data = df_train, ntree=5)
+
+# Predict on the test set
+predictions <- predict(forest, newdata=df_test)
+
+# Calculate the Mean Absolute Error (MAE)
+mae <- mean(abs(predictions - df_test$Top100Status))
+cat('Random Forest Regression MAE:', mae, '\n')
+
+```

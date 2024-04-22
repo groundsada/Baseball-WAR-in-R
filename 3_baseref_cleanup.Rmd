@@ -1,0 +1,289 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Introduction
+
+This notebook is dedicated to cleaning, merging, and analyzing baseball data from two datasets. It includes detailed steps to clean data inconsistencies, merge datasets based on player names, seasons, and teams, and address data discrepancies by normalizing names.
+
+# Initial Setup
+
+## Load Libraries
+
+```{r}
+library(dplyr)
+library(stringr)
+library(stringi)
+
+data <- read.csv("dataset/data1.csv", stringsAsFactors = FALSE)
+nrow(data)
+```
+
+# Data Cleaning
+
+## Load and Inspect Data 1
+
+We start by loading the first dataset and inspecting its initial state.
+
+```{r}
+head(data)
+```
+
+
+## Clean Data 1
+
+We perform several cleaning steps including removing invalid positions, correcting encoded characters, and standardizing player names.
+
+
+
+```{r}
+data_removed <- data[is.na(data$Pos) | data$Pos == "" | data$Pos == "Pos", ]
+data <- data[!is.na(data$Pos) & data$Pos != "" & data$Pos != "Pos", ]
+data$Name <- gsub("\\*$", "", data$Name)
+data$Name <- gsub("√©", "é", data$Name)
+data$Name <- gsub("√≥", "ó", data$Name)
+data$Name <- gsub("√±", "ñ", data$Name)
+
+data$Name <- stri_trans_general(data$Name, "Latin-ASCII")
+
+```
+
+```{r}
+data_removed
+```
+
+```{r}
+nrow(data)
+```
+
+```{r}
+head(data)
+```
+
+```{r}
+print_non_alphanumeric_names <- function(data) {
+  non_alphanumeric_players <- data %>% 
+    filter(!grepl("^[a-zA-Z0-9 ]+$", Name)) %>%
+    select(Name)
+  
+  if (nrow(non_alphanumeric_players) > 0) {
+    print(non_alphanumeric_players)
+  } else {
+    print("No players with non-alphanumeric or space characters in their names.")
+  }
+}
+
+print_non_alphanumeric_names(data)
+```
+
+
+```{r}
+clean_player_names <- function(data) {
+  data$Name <- str_replace_all(data$Name, "#$", "")
+  data$Name <- str_replace_all(data$Name, "[^a-zA-Z0-9 ]", " ")
+  return(data)
+}
+
+data <- clean_player_names(data)
+```
+
+```{r}
+print_non_alphanumeric_names(data)
+```
+
+```{r}
+write.csv(data, "dataset/data1.csv", row.names = FALSE)
+```
+
+## Clean Data 2
+
+Similar cleaning procedures are applied to the second dataset.
+
+```{r}
+data <- read.csv("dataset/data2.csv", stringsAsFactors = FALSE)
+head(data)
+```
+
+```{r}
+nrow(data)
+```
+
+```{r}
+data_removed <- data[is.na(data$Age) | data$Age == "" | data$Age == "Age", ]
+data <- data[!is.na(data$Age) & data$Age != "" & data$Age != "Age", ]
+data$Name <- gsub("\\*$", "", data$Name)
+data$Name <- gsub("√©", "é", data$Name)
+data$Name <- gsub("√≥", "ó", data$Name)
+data$Name <- gsub("√±", "ñ", data$Name)
+data$Name <- stri_trans_general(data$Name, "Latin-ASCII")
+```
+
+
+```{r}
+data_removed
+```
+
+```{r}
+data
+```
+
+```{r}
+print_non_alphanumeric_names(data)
+```
+
+
+```{r}
+data <- clean_player_names(data)
+```
+
+
+```{r}
+print_non_alphanumeric_names(data)
+```
+
+```{r}
+nrow(data)
+```
+
+```{r}
+write.csv(data, "dataset/data2.csv", row.names = FALSE)
+```
+
+
+# Merging Data
+
+## Load and Merge Data
+
+We perform a full join on the two cleaned datasets based on player names, seasons, and teams.
+
+```{r}
+library(dplyr)
+
+data1 <- read.csv("dataset/data1.csv", stringsAsFactors = FALSE)
+data2 <- read.csv("dataset/data2.csv", stringsAsFactors = FALSE)
+
+data1 <- dplyr::mutate(data1, source = "data1")
+data2 <- dplyr::mutate(data2, source = "data2")
+
+full_join_result <- dplyr::full_join(data1, data2, by = c("Name", "Season", "Team"))
+
+unmatched_data1 <- full_join_result %>%
+  dplyr::filter(is.na(source.y)) %>%
+  dplyr::select(names(data1)[names(data1) %in% names(full_join_result)])
+
+unmatched_data2 <- full_join_result %>%
+  dplyr::filter(is.na(source.x)) %>%
+  dplyr::select(names(data2)[names(data2) %in% names(full_join_result)])
+
+print("Rows in Data1 that don't have a match in Data2:")
+print(unmatched_data1)
+```
+
+```{r}
+print("Rows in Data2 that don't have a match in Data1:")
+print(unmatched_data2)
+```
+
+## Removing trailing HOF from Player Names
+
+```{r}
+data1 <- read.csv("dataset/data1.csv", stringsAsFactors = FALSE)
+data2 <- read.csv("dataset/data2.csv", stringsAsFactors = FALSE)
+data2$Name <- str_trim(stringr::str_replace(data2$Name, "\\s+HOF$", ""))
+data1 <- mutate(data1, source = "data1")
+data2 <- mutate(data2, source = "data2")
+full_join_result <- full_join(data1, data2, by = c("Name", "Season", "Team"))
+```
+
+## Identify Unmatched Records
+
+```{r}
+unmatched_data1 <- full_join_result %>%
+  filter(is.na(source.y)) %>%
+  select(names(data1)[names(data1) %in% names(full_join_result)])  # Safely select matching columns
+
+unmatched_data2 <- full_join_result %>%
+  filter(is.na(source.x)) %>%
+  select(names(data2)[names(data2) %in% names(full_join_result)])  # Safely select matching columns
+```
+
+```{r}
+print("Rows in Data1 that don't have a match in Data2:")
+print(unmatched_data1)
+```
+
+```{r}
+print("Rows in Data2 that don't have a match in Data1:")
+print(unmatched_data2)
+```
+
+We have identified the error as the trailing "jr" in data1
+
+```{r}
+print(unmatched_data1[grepl("Jr", unmatched_data1$Name), ])
+print(unmatched_data2[grepl("Jr", unmatched_data2$Name), ])
+```
+
+
+## Normalize and Finalize Merging
+
+Normalization of player names is performed to ensure better matching during the join.
+
+```{r}
+normalize_name <- function(name) {
+  name <- stringr::str_trim(name)
+  name <- gsub("\\s+", " ", name)
+  name <- tolower(name)
+  name <- gsub("\\bjr\\.?$", "jr", name, perl = TRUE)
+  return(name)
+}
+
+data1$Name <- sapply(data1$Name, normalize_name)
+data2$Name <- sapply(data2$Name, normalize_name)
+
+full_join_result <- full_join(data1, data2, by = c("Name", "Season", "Team"))
+
+unmatched_data1 <- full_join_result %>%
+  filter(is.na(source.y)) %>%
+  select(names(data1)[names(data1) %in% names(full_join_result)])
+
+unmatched_data2 <- full_join_result %>%
+  filter(is.na(source.x)) %>%
+  select(names(data2)[names(data2) %in% names(full_join_result)])
+```
+
+```{r}
+print("Rows in Data1 that don't have a match in Data2:")
+print(unmatched_data1)
+```
+
+```{r}
+print("Rows in Data2 that don't have a match in Data1:")
+print(unmatched_data2)
+```
+
+## Results and Data Export
+
+Finally, we inspect the merged results and export the data.
+
+```{r}
+head(full_join_result)
+```
+
+
+```{r}
+summary(full_join_result)
+```
+```{r}
+nrow(full_join_result)
+```
+
+```{r}
+write.csv(full_join_result, "dataset/merged_data.csv", row.names = FALSE)
+```
+
+
+
+
+

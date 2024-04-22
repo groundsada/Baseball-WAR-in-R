@@ -1,0 +1,284 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Introduction
+
+This notebook is designed for comprehensive data cleanup, correlation analysis, and exploratory data analysis (EDA) for a dataset containing master rankings of baseball players.
+
+# Setup Libraries
+
+First, we load the necessary R packages for data manipulation, cleaning, and visualization.
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(caret)
+library(corrplot)
+```
+
+# Data Loading
+
+## Load Dataset
+
+We begin by loading the dataset that will be used throughout the notebook.
+
+```{r}
+data <- read.csv("dataset/master_rank.csv")
+```
+
+```{r}
+head(data)
+```
+
+```{r}
+print(length(colnames(data)))
+print(nrow(data))
+```
+
+# Data Cleaning
+
+## Handling Missing Values
+
+We handle missing values by replacing numeric missing values with the mean and character missing values with 'Unknown'.
+
+```{r}
+data <- data %>%
+  mutate(across(where(is.numeric), ~ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ifelse(is.na(.), "Unknown", .)))
+```
+
+
+```{r}
+print(length(colnames(data)))
+print(nrow(data))
+total_NAs <- sum(is.na(data))
+print(paste("Total NA values in the dataset:", total_NAs))
+```
+
+```{r}
+colnames(data)
+```
+
+```{r}
+#columns_to_scale <- c("Age.x", "G.x", "PA", "AB", "R", "H", "X2B.x", "X3B.x", "HR", "RBI", "SB", "CS", "BB", "SO", "BA", "OBP", "SLG", "OPS", "OPS.", "TB", "GDP", "HBP", "SF", "IBB", "Wt")
+#data[columns_to_scale] <- scale(data[columns_to_scale])
+```
+
+# Correlation Analysis
+
+## Checking for High Correlations
+
+Identify highly correlated pairs in the dataset to inform potential feature reduction or adjustments.
+
+
+```{r}
+cor_data <- cor(data[, sapply(data, is.numeric)], use = "complete.obs")
+high_cor_pairs <- which(cor_data > 0.70 & upper.tri(cor_data), arr.ind = TRUE)
+
+if (length(high_cor_pairs) > 0) {
+  high_cor_data <- data.frame(
+    Feature1 = names(data)[high_cor_pairs[, 1]],
+    Feature2 = names(data)[high_cor_pairs[, 2]],
+    Correlation = cor_data[high_cor_pairs]
+  )
+  print("Highly correlated pairs (above 0.86):")
+  print(high_cor_data)
+} else {
+  print("No highly correlated pairs found.")
+}
+```
+
+# Feature Reduction
+
+## Dropping Columns
+
+Drop columns that are not required for further analysis or that could bias the results due to high correlation.
+
+```{r}
+drop_columns <- function(data, columns_to_drop) {
+  data[, !names(data) %in% columns_to_drop]
+}
+
+columns_to_drop <- c("Player","Team","Year", "Age.x","CS", "OPS.", "GDP", "HBP", "SH", "SF", "source.x", "Age.y", "X", "B", "T", "Ht", "Wt", "DoB", "Yrs", "G.y","P",  "C", "X1B", "X2B.y", "X3B.y", "SS", "LF", "CF", "RF", "OF", "DH", "PH", "PR", "source.y", "X.1", "Pos","Salary")
+
+data <- drop_columns(data, columns_to_drop)
+```
+
+```{r}
+colnames(data)
+```
+
+# Renaming Columns
+
+## Update Column Names
+
+Rename columns for clarity and consistency within the dataset.
+
+
+```{r}
+names(data) <- c(
+  "Rank", "GamesPlayed", "PlateAppearances", "AtBats", "RunsScored", "Hits", 
+  "Doubles", "Triples", "HomeRuns", "RunsBattedIn", "StolenBases", 
+  "BaseOnBalls", "Strikeouts", "BattingAverage", "OnBasePercentage", 
+  "SluggingPercentage", "OnBasePlusSlugging", "TotalBases", "IntentionalWalks", 
+  "GamesStarted", "BattingStats", "DefenseStats", "WinsAboveReplacement", 
+  "Top100Status"
+)
+colnames(data)
+```
+
+# Advanced Correlation Analysis
+
+## Rechecking Correlations After Adjustments
+
+Reanalyze correlations after dropping and renaming columns to ensure no residual high correlation that could impact modeling.
+
+```{r}
+cor_data <- cor(data[, sapply(data, is.numeric)], use = "complete.obs")
+high_cor_pairs <- which(cor_data > 0.92 & upper.tri(cor_data), arr.ind = TRUE)
+
+if (length(high_cor_pairs) > 0) {
+  high_cor_data <- data.frame(
+    Feature1 = names(data)[high_cor_pairs[, 1]],
+    Feature2 = names(data)[high_cor_pairs[, 2]],
+    Correlation = cor_data[high_cor_pairs]
+  )
+
+  feature1_counts <- high_cor_data %>%
+    group_by(Feature1) %>%
+    summarize(Count = n(), .groups = 'drop') %>%
+    arrange(desc(Count))
+
+  print("Count of high correlations per feature (Feature1):")
+  print(feature1_counts)
+} else {
+  print("No highly correlated pairs found.")
+}
+
+
+```
+
+
+```{r}
+columns_to_drop <- c("PlateAppearances","AtBats", "GamesPlayed","RunsScored","Hits","Doubles","RunsBattedIn","TotalBases")
+data <- drop_columns(data, columns_to_drop)
+```
+
+
+```{r}
+cor_data <- cor(data[, sapply(data, is.numeric)], use = "complete.obs")
+high_cor_pairs <- which(cor_data > 0.92 & upper.tri(cor_data), arr.ind = TRUE)
+
+if (length(high_cor_pairs) > 0) {
+  high_cor_data <- data.frame(
+    Feature1 = names(data)[high_cor_pairs[, 1]],
+    Feature2 = names(data)[high_cor_pairs[, 2]],
+    Correlation = cor_data[high_cor_pairs]
+  )
+
+  feature1_counts <- high_cor_data %>%
+    group_by(Feature1) %>%
+    summarize(Count = n(), .groups = 'drop') %>%
+    arrange(desc(Count))
+
+  print("Count of high correlations per feature (Feature1):")
+  print(feature1_counts)
+} else {
+  print("No highly correlated pairs found.")
+}
+```
+
+```{r}
+colnames(data)
+```
+
+# Visualization
+
+## Correlation Heatmap
+
+Visualize the correlation matrix using a heatmap to easily identify any remaining high correlations.
+
+```{r}
+corrplot(cor_data, method = "color", order = "hclust", tl.cex = 0.8,
+         title = "Heatmap of Correlation Matrix", 
+         tl.col = "black", tl.srt = 90)
+
+```
+
+
+As we can see, WAR isn't highly correlated to one feature.
+
+# Principal Component Analysis (PCA)
+
+## Performing PCA
+
+Conduct PCA to reduce dimensionality and identify the major axes of variation in the data.
+
+```{r}
+pca_model <- prcomp(data[, sapply(data, is.numeric)], center = TRUE, scale. = TRUE)
+summary(pca_model)
+```
+
+ - The first principal component captures 35.92% of the variance within the dataset, highlighting its significant role in encompassing the key features and variations of the data.
+ - By retaining the first 10 principal components, which cumulatively account for over 81% of the dataset's variance, we can effectively reduce dimensionality while preserving the majority of the information.
+ - The rapid decline in the proportion of variance explained by subsequent components beyond the 15th (reaching nearly 97.23% cumulative variance), suggests that further components contribute minimally to the data's overall structure.
+ - These results support using the top 10 to 15 components for further data analysis, simplifying the computational demands and potentially enhancing the clarity of patterns and trends in the data.
+ 
+
+ 
+```{r}
+plot(pca_model, type = "l")
+```
+
+# Exploratory Data Analysis (EDA)
+
+## Histogram of Wins Above Replacement (WAR)
+
+Create a histogram to visualize the distribution of the WAR statistic across players.
+
+
+```{r}
+# Histogram for Wins Above Replacement (WAR)
+ggplot(data, aes(x = WinsAboveReplacement)) + 
+  geom_histogram(bins = 30, fill = "red", color = "black") +
+  theme_minimal() +
+  labs(title = "Histogram of Wins Above Replacement (WAR)", x = "WAR")
+
+```
+
+## Descriptive Statistics
+
+```{r}
+# Selecting only continuous variables for summary
+continuous_vars <- data[, sapply(data, is.numeric)]
+summary(continuous_vars)
+
+```
+
+# Final Data Export
+
+## Export Cleaned Data
+
+After all processing steps, export the cleaned and processed data to a CSV file.
+
+```{r}
+write.csv(data, "dataset/processed_data.csv", row.names = FALSE)
+```
+
+
+# Findings:
+
+- **Performance Variability**: There is considerable variability in player performance across different metrics, with a few outliers significantly outperforming others.
+- **Skewness in Distributions**: Many of the metrics show right-skewed distributions, where the majority of players are below the average, pulled up by high-performing outliers.
+- **Physical and Role Diversity**: The wide range in physical stats (like Weight) and role-specific stats (like Games Started or Pitching) reflects the diversity in player roles and physical builds, emphasizing the varied nature of professional baseball.
+- **Impact Players**: The range in Wins Above Replacement highlights the presence of both underperformers and impact players within the league, showcasing the potential for significant individual contributions to team success.
+
+
+
+
+
+
+
